@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # TimescaleDB Database
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: railrover-timescaledb
+    environment:
+      POSTGRES_DB: railrover
+      POSTGRES_USER: railrover_user
+      POSTGRES_PASSWORD: railrover_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - railrover-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U railrover_user -d railrover"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: railrover-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - railrover-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: railrover-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://railrover_user:railrover_password@timescaledb:5432/railrover
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - railrover-network
+    command: npm run dev
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: railrover-frontend
+    environment:
+      VITE_API_URL: http://localhost:3001
+      VITE_GEMINI_API_KEY: ${GEMINI_API_KEY}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - railrover-network
+    command: npm run dev
+
+volumes:
+  timescaledb_data:
+  redis_data:
+
+networks:
+  railrover-network:
+    driver: bridge

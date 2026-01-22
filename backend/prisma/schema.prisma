@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core relational tables
+model Station {
+  id        String   @id
+  name      String
+  code      String   @unique
+  city      String
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  originRoutes      Route[] @relation("OriginStation")
+  destinationRoutes Route[] @relation("DestinationStation")
+  
+  @@map("stations")
+}
+
+model Train {
+  id         String   @id
+  name       String
+  number     String   @unique
+  type       String   // 'express', 'premium', 'local'
+  totalSeats Int      @map("total_seats")
+  amenities  String[]
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  routes      Route[]
+  schedules   TrainSchedule[]
+  bookings    Booking[]
+  occupancy   SeatOccupancy[]
+  pricing     PricingHistory[]
+  
+  @@map("trains")
+}
+
+model Route {
+  id          String  @id
+  trainId     String  @map("train_id")
+  originId    String  @map("origin_id")
+  destinationId String  @map("destination_id")
+  distanceKm  Float?  @map("distance_km")
+  basePrice   Decimal @map("base_price") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  train      Train      @relation(fields: [trainId], references: [id])
+  origin     Station    @relation("OriginStation", fields: [originId], references: [id])
+  destination Station    @relation("DestinationStation", fields: [destinationId], references: [id])
+  schedules  TrainSchedule[]
+  bookings   Booking[]
+  occupancy  SeatOccupancy[]
+  pricing    PricingHistory[]
+  
+  @@map("routes")
+}
+
+model User {
+  id           String    @id
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  phone        String?
+  verified     Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  profile  UserProfile @relation(fields: [id], references: [id], onDelete: Cascade)
+  bookings Booking[]
+  
+  @@map("users")
+}
+
+model UserProfile {
+  userId         String  @id @map("user_id")
+  preferences    Json    @default("{}")
+  loyaltyPoints  Int     @default(0) @map("loyalty_points")
+  tier           String  @default("regular")
+  totalBookings  Int     @default(0) @map("total_bookings")
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_profiles")
+}
+
+// Time-series tables (these will be converted to hypertables)
+model TrainSchedule {
+  time          DateTime @id
+  trainId       String   @map("train_id")
+  routeId       String   @map("route_id")
+  departureTime DateTime @map("departure_time")
+  arrivalTime   DateTime @map("arrival_time")
+  platform      Int?
+  status        String   @default("scheduled") // 'delayed', 'cancelled', 'on_time'
+  delayMinutes  Int      @default(0) @map("delay_minutes")
+  
+  // Relations
+  train Train @relation(fields: [trainId], references: [id])
+  route Route @relation(fields: [routeId], references: [id])
+  
+  @@map("train_schedules")
+}
+
+model SeatOccupancy {
+  time           DateTime @id
+  trainId        String   @map("train_id")
+  routeId        String   @map("route_id")
+  date           DateTime @db.Date
+  totalBooked    Int      @map("total_booked")
+  totalAvailable Int      @map("total_available")
+  occupancyRate  Float    @map("occupancy_rate")
+  
+  // Relations
+  train Train @relation(fields: [trainId], references: [id])
+  route Route @relation(fields: [routeId], references: [id])
+  
+  @@map("seat_occupancy")
+}
+
+model PricingHistory {
+  time         DateTime @id
+  trainId      String   @map("train_id")
+  routeId      String   @map("route_id")
+  ticketClass  String   @map("ticket_class")
+  price        Decimal  @db.Decimal(10, 2)
+  demandFactor Float    @default(1.0) @map("demand_factor")
+  
+  // Relations
+  train Train @relation(fields: [trainId], references: [id])
+  route Route @relation(fields: [routeId], references: [id])
+  
+  @@map("pricing_history")
+}
+
+model Booking {
+  time        DateTime @id
+  id          String   @unique
+  userId      String   @map("user_id")
+  trainId     String   @map("train_id")
+  routeId     String   @map("route_id")
+  travelDate  DateTime @db.Date @map("travel_date")
+  ticketClass String   @map("ticket_class")
+  passengers  Int
+  totalPrice  Decimal  @db.Decimal(10, 2) @map("total_price")
+  status      String   @default("confirmed") // 'confirmed', 'cancelled', 'completed'
+  paymentId   String?  @map("payment_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user  User  @relation(fields: [userId], references: [id])
+  train Train @relation(fields: [trainId], references: [id])
+  route Route @relation(fields: [routeId], references: [id])
+  
+  @@map("bookings")
+}
