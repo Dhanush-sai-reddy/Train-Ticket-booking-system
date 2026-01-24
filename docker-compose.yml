@@ -17,7 +17,7 @@ services:
     networks:
       - railrover-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U railrover_user -d railrover"]
+      test: [ "CMD-SHELL", "pg_isready -U railrover_user -d railrover" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,7 +33,7 @@ services:
     networks:
       - railrover-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -48,7 +48,7 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://railrover_user:railrover_password@timescaledb:5432/railrover
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_SECRET: your-super-secret-jwt-key
       PORT: 3001
     ports:
       - "3001:3001"
@@ -84,9 +84,26 @@ services:
       - railrover-network
     command: npm run dev
 
+  # Grafana for Visual Analytics
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: railrover-grafana
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - railrover-network
+    depends_on:
+      - timescaledb
+
 volumes:
   timescaledb_data:
   redis_data:
+  grafana_data:
+
 
 networks:
   railrover-network:

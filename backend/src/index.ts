@@ -7,6 +7,12 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { createClient } from 'redis';
 
+// Import Routes
+import { authRouter } from './routes/auth.routes';
+import { trainRouter } from './routes/train.routes';
+import { bookingRouter } from './routes/booking.routes';
+import { analyticsRouter } from './routes/analytics.routes';
+
 // Load environment variables
 dotenv.config();
 
@@ -23,7 +29,7 @@ const redisClient = createClient({
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || '*', // Allow all for dev/docker
   credentials: true
 }));
 app.use(compression());
@@ -42,21 +48,10 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', (req, res) => {
-  res.json({ message: 'Auth endpoints coming soon' });
-});
-
-app.use('/api/trains', (req, res) => {
-  res.json({ message: 'Train endpoints coming soon' });
-});
-
-app.use('/api/bookings', (req, res) => {
-  res.json({ message: 'Booking endpoints coming soon' });
-});
-
-app.use('/api/analytics', (req, res) => {
-  res.json({ message: 'Analytics endpoints coming soon' });
-});
+app.use('/api/auth', authRouter);
+app.use('/api/trains', trainRouter);
+app.use('/api/bookings', bookingRouter);
+app.use('/api/analytics', analyticsRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

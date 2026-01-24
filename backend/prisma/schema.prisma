@@ -80,7 +80,7 @@ model User {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   
   // Relations
-  profile  UserProfile @relation(fields: [id], references: [id], onDelete: Cascade)
+  profile  UserProfile?
   bookings Booking[]
   
   @@map("users")
