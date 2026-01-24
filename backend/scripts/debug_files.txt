@@ -1,0 +1,6 @@
+Search Path: /root/.cache/kagglehub/datasets/sripaadsrinivasan/indian-railways-dataset/versions/1
+Found CSVs: []
+Recursive Walk:
+/root/.cache/kagglehub/datasets/sripaadsrinivasan/indian-railways-dataset/versions/1/trains.json
+/root/.cache/kagglehub/datasets/sripaadsrinivasan/indian-railways-dataset/versions/1/stations.json
+/root/.cache/kagglehub/datasets/sripaadsrinivasan/indian-railways-dataset/versions/1/schedules.json
