@@ -99,6 +99,29 @@ services:
     depends_on:
       - timescaledb
 
+  # Data Seeder (One-off)
+  data-seeder:
+    image: python:3.9-slim
+    container_name: railrover-seeder
+    working_dir: /app
+    volumes:
+      - ./backend/scripts:/app
+    environment:
+      - DB_HOST=timescaledb
+      - DB_NAME=railrover
+      - DB_USER=railrover_user
+      - DB_PASS=railrover_password
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - railrover-network
+    # Install deps and run script. Keep container alive briefly to see logs, or just run exit.
+    command: >
+      sh -c "pip install kagglehub pandas psycopg2-binary && python seed_railways.py"
+    profiles:
+      - seed # Only run when --profile seed is specified
+
 volumes:
   timescaledb_data:
   redis_data:
