@@ -15,16 +15,13 @@ class AuthController {
     try {
       const { email, password, firstName, lastName, phone } = req.body;
 
-      // Check if user exists
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         return res.status(400).json({ error: 'User already exists' });
       }
 
-      // Hash password
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-      // Create user
       const user = await prisma.user.create({
         data: {
           id: crypto.randomUUID(),
@@ -45,9 +42,8 @@ class AuthController {
       // Generate token
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
 
-      // Publish Event to Kafka
       try {
-        await kafkaService.publish('booking-events', { // Reusing topic for simplicity, or create 'auth-events'
+        await kafkaService.publish('booking-events', {
           event: 'USER_REGISTERED',
           userId: user.id,
           email: user.email,

@@ -13,14 +13,12 @@ class BookingController {
 
             // Use a transaction to ensure atomicity
             const booking = await prisma.$transaction(async (tx) => {
-                // 1. Check train existence and capacity
                 const train = await tx.train.findUnique({ where: { id: trainId } });
                 if (!train) throw new Error('Train not found');
 
                 // Check if enough seats
                 if (train.totalSeats < passengers) {
                     if (train.totalSeats < passengers) {
-                        // Send to Waitlist Topic (Kafka)
                         await kafkaService.publish('waitlist-events', {
                             type: 'WAITLIST_REQUEST',
                             userId,
@@ -29,16 +27,13 @@ class BookingController {
                             timestamp: new Date().toISOString()
                         });
 
-                        // Returning null to signal waitlist path outside transaction
                         return null;
                     }
                 }
 
-                // 2. Calculate Price (Mock calculation)
                 const basePrice = 50;
                 const totalPrice = basePrice * passengers;
 
-                // 3. Create Booking
                 const newBooking = await tx.booking.create({
                     data: {
                         time: new Date(),
@@ -57,7 +52,6 @@ class BookingController {
                 return newBooking;
             });
 
-            // Handle Waitlist Response
             if (!booking) {
                 return res.status(202).json({
                     message: 'Train is full. Added to waitlist.',
@@ -65,8 +59,6 @@ class BookingController {
                 });
             }
 
-            // 5. Async Process - High Performance Event Streaming
-            // Publish to Kafka for Real-time Analytics
             try {
                 await kafkaService.publish('booking-events', {
                     event: 'BOOKING_CREATED',
@@ -79,8 +71,6 @@ class BookingController {
                 console.error("Kafka publish error (non-blocking):", kErr);
             }
 
-            // 6. Async Task - Reliable Job Queue
-            // Send to RabbitMQ for Email Notification
             try {
                 await rabbitMQService.sendToQueue('email_notifications', {
                     type: 'BOOKING_CONFIRMATION',

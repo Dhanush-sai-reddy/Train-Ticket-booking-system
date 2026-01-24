@@ -1,4 +1,5 @@
-import amqp, { Connection, Channel } from 'amqplib';
+import * as amqp from 'amqplib';
+import { Connection, Channel } from 'amqplib';
 
 class RabbitMQService {
     private connection: Connection | null = null;
@@ -6,7 +7,7 @@ class RabbitMQService {
     private url: string;
 
     constructor() {
-        this.url = process.env.RABBITMQ_URL || 'amqp://localhost';
+        this.url = process.env.RABBITMQ_URL ?? 'amqp://localhost';
     }
 
     public async connect(): Promise<void> {
@@ -35,7 +36,7 @@ class RabbitMQService {
         try {
             await this.channel.assertQueue(queue, { durable: true });
             this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
-            // console.log(`Example: Sent to queue ${queue}`, message);
+
         } catch (error) {
             console.error(`Failed to send to queue ${queue}:`, error);
         }
