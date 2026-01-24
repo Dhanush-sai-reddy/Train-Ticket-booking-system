@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -26,6 +27,7 @@ class BookingController {
                 // 3. Create Booking
                 const newBooking = await tx.booking.create({
                     data: {
+                        time: new Date(),
                         id: crypto.randomUUID(),
                         userId,
                         trainId,
