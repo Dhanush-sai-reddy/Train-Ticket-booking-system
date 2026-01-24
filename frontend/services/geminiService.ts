@@ -1,14 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const getAiClient = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenAI({ apiKey });
+};
 
 export const generateTravelAdvice = async (
   prompt: string,
   context?: string
 ): Promise<string> => {
-  if (!apiKey) {
-    return "Service unavailable. Please check configuration.";
+  const ai = getAiClient();
+  if (!ai) {
+    console.warn("Gemini API Key missing");
+    return "I am currently offline (API Key missing). Please check your configuration.";
   }
 
   try {
@@ -22,7 +27,7 @@ export const generateTravelAdvice = async (
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: fullPrompt,
     });
 
@@ -34,7 +39,8 @@ export const generateTravelAdvice = async (
 };
 
 export const parseTravelIntent = async (text: string): Promise<any> => {
-  if (!apiKey) return null;
+  const ai = getAiClient();
+  if (!ai) return null;
 
   try {
     const prompt = `
@@ -44,7 +50,7 @@ export const parseTravelIntent = async (text: string): Promise<any> => {
      `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });

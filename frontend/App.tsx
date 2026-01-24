@@ -9,7 +9,6 @@ import BookingForm from './components/BookingForm';
 import TicketView from './components/TicketView';
 import { Calendar, MapPin, Search } from 'lucide-react';
 
-// Wrapper component to use hooks like useNavigate
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -72,7 +71,6 @@ const AppContent: React.FC = () => {
                   Book tickets seamlesssly with India's most advanced railway platform. Powered by Real-time Intelligence.
                 </p>
 
-                {/* Search Card */}
                 <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
                   <form onSubmit={handleSearch} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -144,7 +142,7 @@ const AppContent: React.FC = () => {
                   alt="Modern Train"
                   className="relative rounded-3xl shadow-2xl z-10 object-cover h-[500px] w-full"
                 />
-                {/* Floating Element */}
+
                 <div className="absolute -bottom-8 -left-8 bg-white p-4 rounded-xl shadow-xl z-20 flex items-center gap-4 animate-bounce duration-[3000ms]">
                   <div className="bg-green-100 p-3 rounded-full">
                     <div className="h-2 w-2 bg-green-500 rounded-full"></div>
@@ -162,7 +160,7 @@ const AppContent: React.FC = () => {
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <h2 className="text-2xl font-bold mb-6 text-slate-800">Available Trains</h2>
               <div className="flex flex-col lg:flex-row gap-8">
-                {/* Filters Sidebar (Visual only) */}
+
                 <div className="lg:w-64 hidden lg:block space-y-6">
                   <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <h3 className="font-semibold mb-3">Filters</h3>

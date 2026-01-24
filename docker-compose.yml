@@ -129,7 +129,7 @@ services:
     container_name: railrover-seeder
     working_dir: /app
     volumes:
-      - ./backend/scripts:/app
+      - ./:/app
     environment:
       - DB_HOST=timescaledb
       - DB_NAME=railrover
@@ -142,7 +142,7 @@ services:
       - railrover-network
     # Install deps and run script. Keep container alive briefly to see logs, or just run exit.
     command: >
-      sh -c "pip install kagglehub pandas psycopg2-binary && python seed_railways.py"
+      sh -c "pip install psycopg2-binary && python backend/scripts/seed_railways.py"
     profiles:
       - seed # Only run when --profile seed is specified
 

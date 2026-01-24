@@ -29,7 +29,15 @@
 
 <body class="bg-slate-50 text-slate-900 antialiased">
   <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+  <script>
+    window.global = window;
+    window.process = {
+      env: { DEBUG: undefined },
+      version: '',
+      nextTick: (cb) => setTimeout(cb, 0),
+    };
+  </script>
+  <script type="module" src="/main.tsx"></script>
 </body>
 
 </html>
