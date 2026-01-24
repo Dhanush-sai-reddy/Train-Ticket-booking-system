@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS pricing_history (
 
 CREATE TABLE IF NOT EXISTS bookings (
     time TIMESTAMPTZ NOT NULL,
-    id TEXT PRIMARY KEY,
+    id TEXT,
+    PRIMARY KEY (time, id),
     user_id TEXT NOT NULL,
     train_id TEXT NOT NULL,
     route_id TEXT NOT NULL,
@@ -124,7 +125,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE MATERIALIZED VIEW IF NOT EXISTS daily_occupancy_stats
 WITH (timescaledb.continuous) AS
 SELECT 
-    date_trunc('day', time) AS day,
+    time_bucket('1 day', time) AS day,
     train_id,
     AVG(occupancy_rate) as avg_occupancy,
     MAX(occupancy_rate) as max_occupancy,

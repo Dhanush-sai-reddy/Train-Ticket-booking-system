@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const generateTravelAdvice = async (
@@ -34,24 +34,24 @@ export const generateTravelAdvice = async (
 };
 
 export const parseTravelIntent = async (text: string): Promise<any> => {
-   if (!apiKey) return null;
+  if (!apiKey) return null;
 
-   try {
-     const prompt = `
+  try {
+    const prompt = `
        Extract travel details from this text into JSON: "${text}".
        Return ONLY JSON. Keys: origin (city name), destination (city name), date (YYYY-MM-DD if mentioned, else today's date formatted), passengers (number).
        If a field is missing, use null.
      `;
 
-     const response = await ai.models.generateContent({
-       model: 'gemini-3-flash-preview',
-       contents: prompt,
-       config: { responseMimeType: 'application/json' }
-     });
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: { responseMimeType: 'application/json' }
+    });
 
-     return JSON.parse(response.text || '{}');
-   } catch (e) {
-     console.error("Intent parsing error", e);
-     return null;
-   }
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    console.error("Intent parsing error", e);
+    return null;
+  }
 };
