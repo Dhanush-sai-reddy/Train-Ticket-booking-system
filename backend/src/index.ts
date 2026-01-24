@@ -26,7 +26,6 @@ const redisClient = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
-// Middleware
 app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*', // Allow all for dev/docker
@@ -75,34 +74,34 @@ async function startServer() {
   try {
     // Connect to Redis
     await redisClient.connect();
-    console.log('✅ Redis connected successfully');
+    console.log('Redis connected successfully');
 
     // Test database connection
     await prisma.$connect();
-    console.log('✅ Database connected successfully');
+    console.log('Database connected successfully');
 
     // Start Express server
     app.listen(PORT, () => {
-      console.log(`🚀 RailRover Backend Server running on port ${PORT}`);
-      console.log(`📊 Health check: http://localhost:${PORT}/health`);
-      console.log(`🔍 API Documentation: http://localhost:${PORT}/api`);
+      console.log(`RailRover Backend Server running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/health`);
+      console.log(`API Documentation: http://localhost:${PORT}/api`);
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    console.error('Failed to start server:', error);
     process.exit(1);
   }
 }
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('🔄 Shutting down gracefully...');
+  console.log('Shutting down gracefully...');
   await redisClient.disconnect();
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-  console.log('🔄 Shutting down gracefully...');
+  console.log('Shutting down gracefully...');
   await redisClient.disconnect();
   await prisma.$disconnect();
   process.exit(0);

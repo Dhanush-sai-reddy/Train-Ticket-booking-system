@@ -12,9 +12,9 @@ KAFKA_BROKER = os.environ.get('KAFKA_BROKER', 'kafka:29092')
 TOPIC_NAME = 'booking-events'
 DB_URL = os.environ.get('DATABASE_URL', 'postgresql://railrover_user:railrover_password@timescaledb:5432/railrover')
 
-print(f"🚀 Analytics Service Starting...")
-print(f"🔌 Connecting to Kafka at {KAFKA_BROKER}")
-print(f"💾 Database URL configured")
+print(f"Analytics Service Starting...")
+print(f"Connecting to Kafka at {KAFKA_BROKER}")
+print(f"Database URL configured")
 
 # Wait for Kafka to be ready
 def wait_for_kafka():
@@ -28,23 +28,23 @@ def wait_for_kafka():
                 group_id='analytics-group',
                 value_deserializer=lambda x: json.loads(x.decode('utf-8'))
             )
-            print("✅ Connected to Kafka!")
+            print("Connected to Kafka!")
             return consumer
         except Exception as e:
-            print(f"⏳ Waiting for Kafka... ({e})")
+            print(f"Waiting for Kafka... ({e})")
             time.sleep(5)
 
 # Database Connection
 try:
     engine = create_engine(DB_URL)
-    print("✅ Database engine created.")
+    print("Database engine created.")
 except Exception as e:
-    print(f"❌ Failed to create DB engine: {e}")
+    print(f"Failed to create DB engine: {e}")
 
 def process_message(message):
     try:
         data = message.value
-        print(f"📥 Received Event: {data}")
+        print(f"Received Event: {data}")
         
         # Simple Analytics Logic:
         # We could aggregate here using Pandas if we had a batch, 
@@ -57,10 +57,10 @@ def process_message(message):
             
             # Example: We could insert into a 'daily_revenue' table here
             # For demonstration, we just print the 'Intelligence'
-            print(f"💰 Revenue Alert: New booking of ${amount} on route {route_id}")
+            print(f"Revenue Alert: New booking of ${amount} on route {route_id}")
             
     except Exception as e:
-        print(f"❌ Error processing message: {e}")
+        print(f"Error processing message: {e}")
 
 def start_consumer():
     consumer = wait_for_kafka()
