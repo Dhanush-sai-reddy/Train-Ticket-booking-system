@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { kafkaService } from '../services/kafka.service';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
@@ -43,6 +44,18 @@ class AuthController {
 
       // Generate token
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '24h' });
+
+      // Publish Event to Kafka
+      try {
+        await kafkaService.publish('booking-events', { // Reusing topic for simplicity, or create 'auth-events'
+          event: 'USER_REGISTERED',
+          userId: user.id,
+          email: user.email,
+          timestamp: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error("Kafka publish error:", err);
+      }
 
       res.status(201).json({
         message: 'User registered successfully',

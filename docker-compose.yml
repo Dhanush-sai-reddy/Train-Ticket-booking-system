@@ -22,6 +22,24 @@ services:
       timeout: 10s
       retries: 3
 
+  # Analytics Service (Python)
+  analytics:
+    build:
+      context: ./analytics
+      dockerfile: Dockerfile
+    container_name: railrover-analytics
+    environment:
+      KAFKA_BROKER: kafka:29092
+      DATABASE_URL: postgresql://railrover_user:railrover_password@timescaledb:5432/railrover
+    depends_on:
+      kafka:
+        condition: service_started
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - railrover-network
+    command: python -u main.py
+
   # Redis for caching and sessions
   redis:
     image: redis:7-alpine
@@ -48,6 +66,8 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://railrover_user:railrover_password@timescaledb:5432/railrover
       REDIS_URL: redis://redis:6379
+      KAFKA_BROKERS: kafka:29092
+      RABBITMQ_URL: amqp://railrover:railrover_pass@rabbitmq:5672
       JWT_SECRET: your-super-secret-jwt-key
       PORT: 3001
     ports:
@@ -60,6 +80,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      kafka:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - railrover-network
     command: npm run dev
@@ -122,10 +146,54 @@ services:
     profiles:
       - seed # Only run when --profile seed is specified
 
+  # Zookeeper (for Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: railrover-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - railrover-network
+
+  # Kafka (Event Streaming)
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: railrover-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - railrover-network
+
+  # RabbitMQ (Task Queue)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: railrover-rabbitmq
+    ports:
+      - "5672:5672" # AMQP protocol
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: railrover
+      RABBITMQ_DEFAULT_PASS: railrover_pass
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - railrover-network
+
 volumes:
   timescaledb_data:
   redis_data:
   grafana_data:
+  rabbitmq_data:
 
 
 networks:
