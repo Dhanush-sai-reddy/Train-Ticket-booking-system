@@ -143,3 +143,37 @@ COMMENT ON TABLE pricing_history IS 'Time-series pricing data';
 COMMENT ON TABLE bookings IS 'Time-series booking records';
 COMMENT ON TABLE users IS 'User accounts and authentication';
 COMMENT ON TABLE user_profiles IS 'User preferences and loyalty data';
+
+-- Seed Data
+-- Stations (Major Indian Cities)
+INSERT INTO stations (id, name, code, city, latitude, longitude) VALUES
+('st_1', 'Mumbai CSMT', 'CSMT', 'Mumbai', 18.9415, 72.8347),
+('st_2', 'New Delhi', 'NDLS', 'New Delhi', 28.6139, 77.2090),
+('st_3', 'KSR Bangalore', 'SBC', 'Bangalore', 12.9716, 77.5946),
+('st_4', 'Chennai Central', 'MAS', 'Chennai', 13.0827, 80.2707),
+('st_5', 'Howrah Junction', 'HWH', 'Kolkata', 22.5837, 88.3426),
+('st_6', 'Secunderabad', 'SC', 'Hyderabad', 17.4399, 78.4983),
+('st_7', 'Pune Junction', 'PUNE', 'Pune', 18.5289, 73.8744),
+('st_8', 'Ahmedabad Junction', 'ADI', 'Ahmedabad', 23.0225, 72.5714),
+('st_9', 'Jaipur Junction', 'JP', 'Jaipur', 26.9196, 75.7878),
+('st_10', 'Patna Junction', 'PNBE', 'Patna', 25.6022, 85.1194);
+
+-- Trains
+INSERT INTO trains (id, name, number, type, total_seats, amenities, active) VALUES
+('tr_1', 'Mumbai Rajdhani', '12951', 'premium', 750, ARRAY['Wifi', 'Meals', 'AC', 'Lounge'], true),
+('tr_2', 'Bhopal Shatabdi', '12002', 'express', 500, ARRAY['Meals', 'AC'], true),
+('tr_3', 'Vande Bharat', '20901', 'premium', 1100, ARRAY['Wifi', 'Meals', 'AC', 'Bio-Toilets'], true),
+('tr_4', 'Karnataka Express', '12627', 'express', 1200, ARRAY['Pantry', 'Sleeper'], true),
+('tr_5', 'Coromandel Express', '12841', 'express', 1500, ARRAY['Pantry'], true),
+('tr_6', 'Deccan Queen', '12124', 'local', 800, ARRAY['PassHolder'], true);
+
+-- Routes (Connecting the graph)
+INSERT INTO routes (id, train_id, origin_id, destination_id, distance_km, base_price) VALUES
+('rt_1', 'tr_1', 'st_1', 'st_2', 1384.0, 2800.00), -- Mumbai -> Delhi
+('rt_2', 'tr_2', 'st_2', 'st_5', 1450.0, 2200.00), -- Delhi -> Kolkata
+('rt_3', 'tr_3', 'st_1', 'st_8', 492.0, 1500.00), -- Mumbai -> Ahmedabad
+('rt_4', 'tr_4', 'st_3', 'st_2', 2300.0, 1800.00), -- Bangalore -> Delhi
+('rt_5', 'tr_5', 'st_5', 'st_4', 1660.0, 1400.00), -- Kolkata -> Chennai
+('rt_6', 'tr_6', 'st_1', 'st_7', 192.0, 150.00),  -- Mumbai -> Pune
+('rt_7', 'tr_1', 'st_2', 'st_1', 1384.0, 2800.00), -- Delhi -> Mumbai (Return)
+('rt_8', 'tr_4', 'st_2', 'st_3', 2300.0, 1800.00); -- Delhi -> Bangalore (Return)
