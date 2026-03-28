@@ -3,22 +3,50 @@ import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import { kafkaService } from '../services/kafka.service';
 import { rabbitMQService } from '../services/rabbitmq.service';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 const prisma = new PrismaClient();
 
 class BookingController {
-    public createBooking = async (req: Request, res: Response) => {
+    // Get user's bookings
+    public getBookings = async (req: AuthRequest, res: Response) => {
         try {
-            const { userId, trainId, routeId, travelDate, ticketClass, passengers } = req.body;
+            const userId = req.userId!;
+            const bookings = await prisma.booking.findMany({
+                where: { userId },
+                orderBy: { time: 'desc' },
+                include: {
+                    train: true,
+                    route: {
+                        include: {
+                            origin: true,
+                            destination: true
+                        }
+                    }
+                }
+            });
+            res.json(bookings);
+        } catch (error) {
+            console.error('Get bookings error:', error);
+            res.status(500).json({ error: 'Failed to fetch bookings' });
+        }
+    };
 
-            // Use a transaction to ensure atomicity
+    // Create a booking
+    public createBooking = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.userId!;
+            const { trainId, routeId, travelDate, ticketClass, passengers } = req.body;
+
             const booking = await prisma.$transaction(async (tx) => {
                 const train = await tx.train.findUnique({ where: { id: trainId } });
                 if (!train) throw new Error('Train not found');
 
-                // Check if enough seats
+                const route = await tx.route.findUnique({ where: { id: routeId } });
+                if (!route) throw new Error('Route not found');
+
                 if (train.totalSeats < passengers) {
-                    if (train.totalSeats < passengers) {
+                    try {
                         await kafkaService.publish('waitlist-events', {
                             type: 'WAITLIST_REQUEST',
                             userId,
@@ -26,13 +54,18 @@ class BookingController {
                             passengers,
                             timestamp: new Date().toISOString()
                         });
-
-                        return null;
+                    } catch (err) {
+                        console.error("Kafka waitlist error:", err);
                     }
+                    return null;
                 }
 
-                const basePrice = 50;
-                const totalPrice = basePrice * passengers;
+                // Use route base price with class multiplier
+                const basePrice = Number(route.basePrice);
+                let multiplier = 1;
+                if (ticketClass === 'Business') multiplier = 1.5;
+                if (ticketClass === 'First') multiplier = 2.5;
+                const totalPrice = Math.round(basePrice * multiplier * passengers);
 
                 const newBooking = await tx.booking.create({
                     data: {
@@ -75,8 +108,7 @@ class BookingController {
                 await rabbitMQService.sendToQueue('email_notifications', {
                     type: 'BOOKING_CONFIRMATION',
                     bookingId: booking.id,
-                    userId: booking.userId,
-                    email: 'user@example.com'
+                    userId: booking.userId
                 });
             } catch (rErr) {
                 console.error("RabbitMQ send error (non-blocking):", rErr);

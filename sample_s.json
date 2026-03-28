@@ -1,0 +1,17 @@
+{
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      75.4516454,
+      27.2520587
+    ]
+  },
+  "type": "Feature",
+  "properties": {
+    "state": "Rajasthan",
+    "code": "BDHL",
+    "name": "Badhal",
+    "zone": "NWR",
+    "address": "Kishangarh Renwal, Rajasthan"
+  }
+}

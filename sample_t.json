@@ -1,0 +1,55 @@
+{
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        74.880117,
+        32.706975
+      ],
+      [
+        74.953339,
+        32.762368
+      ],
+      [
+        75.044078,
+        32.80617
+      ],
+      [
+        75.13222499999999,
+        32.769105
+      ],
+      [
+        75.14542599999999,
+        32.863528
+      ],
+      [
+        75.154881,
+        32.92664
+      ]
+    ]
+  },
+  "type": "Feature",
+  "properties": {
+    "third_ac": 0,
+    "arrival": "12:15:00",
+    "from_station_code": "JAT",
+    "name": "Jammu Tawi Udhampur Special",
+    "zone": "NR",
+    "chair_car": 0,
+    "first_class": 0,
+    "duration_m": 35,
+    "sleeper": 0,
+    "from_station_name": "JAMMU TAWI",
+    "number": "04601",
+    "departure": "10:40:00",
+    "return_train": "04602",
+    "to_station_code": "UHP",
+    "second_ac": 0,
+    "classes": "",
+    "to_station_name": "UDHAMPUR",
+    "duration_h": 1,
+    "type": "DEMU",
+    "first_ac": 0,
+    "distance": 53
+  }
+}

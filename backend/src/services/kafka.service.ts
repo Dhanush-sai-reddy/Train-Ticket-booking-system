@@ -9,7 +9,7 @@ class KafkaService {
     constructor() {
         this.kafka = new Kafka({
             clientId: 'railrover-backend',
-            brokers: (process.env.KAFKA_BROKER || 'localhost:9092').split(',')
+            brokers: (process.env.KAFKA_BROKERS || process.env.KAFKA_BROKER || 'localhost:9092').split(',')
         });
         this.producer = this.kafka.producer();
         this.consumer = this.kafka.consumer({ groupId: 'railrover-group' });
@@ -31,23 +31,16 @@ class KafkaService {
             await this.producer.disconnect();
             await this.consumer.disconnect();
             this.isConnected = false;
-            console.log('Example: Kafka disconnected');
         }
     }
 
     public async publish(topic: string, message: any): Promise<void> {
-        if (!this.isConnected) {
-            console.warn('Kafka not connected, skipping publish');
-            return;
-        }
+        if (!this.isConnected) return;
         try {
             await this.producer.send({
                 topic,
-                messages: [
-                    { value: JSON.stringify(message) }
-                ],
+                messages: [{ value: JSON.stringify(message) }],
             });
-            // console.log(`Example: Published to ${topic}`, message);
         } catch (error) {
             console.error(`Failed to publish to ${topic}:`, error);
         }
@@ -55,14 +48,11 @@ class KafkaService {
 
     public async subscribe(topic: string, callback: (message: any) => void): Promise<void> {
         if (!this.isConnected) return;
-
         await this.consumer.subscribe({ topic, fromBeginning: false });
-
         await this.consumer.run({
-            eachMessage: async ({ topic, partition, message }) => {
+            eachMessage: async ({ message }) => {
                 if (message.value) {
-                    const content = JSON.parse(message.value.toString());
-                    callback(content);
+                    callback(JSON.parse(message.value.toString()));
                 }
             },
         });

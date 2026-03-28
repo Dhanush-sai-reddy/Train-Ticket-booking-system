@@ -12,6 +12,7 @@ import { authRouter } from './routes/auth.routes';
 import { trainRouter } from './routes/train.routes';
 import { bookingRouter } from './routes/booking.routes';
 import { analyticsRouter } from './routes/analytics.routes';
+import { stationRouter } from './routes/station.routes';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/trains', trainRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/stations', stationRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -72,9 +74,13 @@ app.use('*', (req, res) => {
 // Start server
 async function startServer() {
   try {
-    // Connect to Redis
-    await redisClient.connect();
-    console.log('Redis connected successfully');
+    // Connect to Redis (non-blocking for local dev)
+    try {
+      await redisClient.connect();
+      console.log('Redis connected successfully');
+    } catch (redisErr) {
+      console.warn('Redis connection failed (non-blocking):', (redisErr as Error).message);
+    }
 
     // Test database connection
     await prisma.$connect();

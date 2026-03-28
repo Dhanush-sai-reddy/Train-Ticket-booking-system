@@ -5,15 +5,31 @@ export interface Station {
   city: string;
 }
 
+// Backend train shape (with routes included)
+export interface TrainRoute {
+  id: string;
+  trainId: string;
+  originId: string;
+  destinationId: string;
+  distanceKm: number | null;
+  basePrice: string; // Decimal comes as string from Prisma
+  origin: Station;
+  destination: Station;
+}
+
 export interface Train {
   id: string;
   name: string;
   number: string;
-  departureTime: string; // ISO string or HH:mm
-  arrivalTime: string;
-  duration: string;
-  priceStart: number;
+  type: string;
+  totalSeats: number;
   amenities: string[];
+  routes: TrainRoute[];
+  // Frontend-only display helpers (optional)
+  departureTime?: string;
+  arrivalTime?: string;
+  duration?: string;
+  priceStart?: number;
 }
 
 export enum TicketClass {

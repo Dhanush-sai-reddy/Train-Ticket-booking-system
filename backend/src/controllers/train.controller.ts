@@ -5,19 +5,26 @@ import crypto from 'crypto';
 const prisma = new PrismaClient();
 
 class TrainController {
-    // Get all trains (with basic filtering)
+    // Get all trains (with route-based filtering)
     public getTrains = async (req: Request, res: Response) => {
         try {
-            const { source, destination } = req.query;
+            const { origin, destination } = req.query;
 
-            // In a real app, we'd query Routes joining Stations.
-            // For simplicity/demo specific to trains:
+            const where: any = { active: true };
+            const routeFilter: any = {};
+
+            if (origin) routeFilter.originId = origin as string;
+            if (destination) routeFilter.destinationId = destination as string;
+
+            const hasRouteFilter = Object.keys(routeFilter).length > 0;
+
             const trains = await prisma.train.findMany({
-                where: {
-                    active: true,
-                },
+                where: hasRouteFilter
+                    ? { ...where, routes: { some: routeFilter } }
+                    : where,
                 include: {
                     routes: {
+                        where: hasRouteFilter ? routeFilter : undefined,
                         include: {
                             origin: true,
                             destination: true

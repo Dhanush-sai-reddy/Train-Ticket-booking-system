@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import GeminiAssistant from './components/GeminiAssistant';
+import MyBookings from './components/MyBookings';
 import { STATIONS, MOCK_TRAINS } from './constants';
-import { Train, TicketClass, SearchParams, Booking, Passenger } from './types';
+import { Train, TicketClass, SearchParams, Booking, Passenger, Station } from './types';
 import TrainList from './components/TrainList';
 import BookingForm from './components/BookingForm';
 import TicketView from './components/TicketView';
-import { Calendar, MapPin, Search } from 'lucide-react';
+import { Calendar, MapPin, Search, Loader2 } from 'lucide-react';
+import { AuthProvider } from './contexts/AuthContext';
+import { api } from './services/api';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
+
+  // Stations — try API then fallback to constants
+  const [stations, setStations] = useState<Station[]>(STATIONS);
+  useEffect(() => {
+    api.stations.list()
+      .then(data => { 
+        if (data.length) {
+          setStations(data);
+          // Sync default search with live database IDs
+          setSearchParams(prev => ({
+            ...prev,
+            originId: data[0].id,
+            destinationId: data[1] ? data[1].id : data[0].id
+          }));
+        } 
+      })
+      .catch(() => {}); // fallback to constants
+  }, []);
+
   const [searchParams, setSearchParams] = useState<SearchParams>({
     originId: STATIONS[0].id,
     destinationId: STATIONS[2].id,
@@ -18,15 +40,28 @@ const AppContent: React.FC = () => {
     passengers: 1
   });
 
+  const [searchResults, setSearchResults] = useState<Train[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const [bookingState, setBookingState] = useState<{
     train?: Train;
     ticketClass?: TicketClass;
     booking?: Booking;
   }>({});
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/results');
+    setIsSearching(true);
+    try {
+      const trains = await api.trains.search(searchParams.originId, searchParams.destinationId);
+      setSearchResults(trains);
+    } catch {
+      // API unavailable — empty results
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+      navigate('/results');
+    }
   };
 
   const handleSelectTrain = (train: Train, tClass: TicketClass) => {
@@ -35,15 +70,17 @@ const AppContent: React.FC = () => {
   };
 
   const handleBookingConfirm = (passengers: Passenger[]) => {
+    const origin = stations.find(s => s.id === searchParams.originId) || STATIONS[0];
+    const dest = stations.find(s => s.id === searchParams.destinationId) || STATIONS[2];
     const newBooking: Booking = {
       id: Math.random().toString(36).substr(2, 9).toUpperCase(),
       train: bookingState.train!,
       ticketClass: bookingState.ticketClass!,
-      origin: STATIONS.find(s => s.id === searchParams.originId)!,
-      destination: STATIONS.find(s => s.id === searchParams.destinationId)!,
+      origin,
+      destination: dest,
       date: searchParams.date,
       passengers,
-      totalPrice: 0 // Calculated in form
+      totalPrice: 0
     };
     setBookingState({ ...bookingState, booking: newBooking });
     navigate('/confirmation');
@@ -68,7 +105,7 @@ const AppContent: React.FC = () => {
                   <span className="text-accent">RailRover</span>
                 </h1>
                 <p className="text-lg text-slate-600 max-w-lg">
-                  Book tickets seamlesssly with India's most advanced railway platform. Powered by Real-time Intelligence.
+                  Book tickets seamlessly with India's most advanced railway platform. Powered by Real-time Intelligence.
                 </p>
 
                 <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
@@ -83,7 +120,7 @@ const AppContent: React.FC = () => {
                             value={searchParams.originId}
                             onChange={(e) => setSearchParams({ ...searchParams, originId: e.target.value })}
                           >
-                            {STATIONS.map(s => <option key={s.id} value={s.id}>{s.city} ({s.code})</option>)}
+                            {stations.map(s => <option key={s.id} value={s.id}>{s.city} ({s.code})</option>)}
                           </select>
                         </div>
                       </div>
@@ -96,7 +133,7 @@ const AppContent: React.FC = () => {
                             value={searchParams.destinationId}
                             onChange={(e) => setSearchParams({ ...searchParams, destinationId: e.target.value })}
                           >
-                            {STATIONS.map(s => <option key={s.id} value={s.id}>{s.city} ({s.code})</option>)}
+                            {stations.map(s => <option key={s.id} value={s.id}>{s.city} ({s.code})</option>)}
                           </select>
                         </div>
                       </div>
@@ -127,9 +164,10 @@ const AppContent: React.FC = () => {
                       </div>
                     </div>
 
-                    <button type="submit" className="w-full bg-primary hover:bg-slate-800 text-white font-semibold py-4 rounded-xl shadow-lg shadow-slate-900/20 transition-all transform hover:-translate-y-0.5 flex justify-center items-center gap-2">
-                      <Search className="h-5 w-5" />
-                      Search Trains
+                    <button type="submit" disabled={isSearching}
+                      className="w-full bg-primary hover:bg-slate-800 text-white font-semibold py-4 rounded-xl shadow-lg shadow-slate-900/20 transition-all transform hover:-translate-y-0.5 flex justify-center items-center gap-2 disabled:opacity-60">
+                      {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+                      {isSearching ? 'Searching...' : 'Search Trains'}
                     </button>
                   </form>
                 </div>
@@ -179,7 +217,7 @@ const AppContent: React.FC = () => {
                 </div>
 
                 <div className="flex-1">
-                  <TrainList trains={MOCK_TRAINS} onSelect={handleSelectTrain} />
+                  <TrainList trains={searchResults.length ? searchResults : MOCK_TRAINS as any} onSelect={handleSelectTrain} />
                 </div>
               </div>
             </div>
@@ -190,9 +228,10 @@ const AppContent: React.FC = () => {
               <BookingForm
                 train={bookingState.train}
                 ticketClass={bookingState.ticketClass || TicketClass.ECONOMY}
-                origin={STATIONS.find(s => s.id === searchParams.originId)!}
-                destination={STATIONS.find(s => s.id === searchParams.destinationId)!}
+                origin={stations.find(s => s.id === searchParams.originId) || STATIONS[0]}
+                destination={stations.find(s => s.id === searchParams.destinationId) || STATIONS[2]}
                 date={searchParams.date}
+                passengers={searchParams.passengers}
                 onBack={() => navigate('/results')}
                 onConfirm={handleBookingConfirm}
               />
@@ -204,6 +243,8 @@ const AppContent: React.FC = () => {
               <TicketView booking={bookingState.booking} onReset={resetBooking} />
             ) : <div className="text-center p-10">No active booking found.</div>
           } />
+
+          <Route path="/my-bookings" element={<MyBookings />} />
         </Routes>
       </main>
 
@@ -214,9 +255,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 };
 

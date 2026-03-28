@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Train, TicketClass, Passenger, Station } from '../types';
-import { User, CreditCard, ChevronLeft, CheckCircle } from 'lucide-react';
+import { User, CreditCard, ChevronLeft, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { api } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface BookingFormProps {
   train: Train;
@@ -8,13 +10,15 @@ interface BookingFormProps {
   origin: Station;
   destination: Station;
   date: string;
+  passengers: number;
   onBack: () => void;
   onConfirm: (passengers: Passenger[]) => void;
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({ 
-  train, ticketClass, origin, destination, date, onBack, onConfirm 
+  train, ticketClass, origin, destination, date, passengers: passengerCount, onBack, onConfirm 
 }) => {
+  const { isAuthenticated } = useAuth();
   const [passenger, setPassenger] = useState<Passenger>({
     id: '1',
     firstName: '',
@@ -25,21 +29,52 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   const [paymentStep, setPaymentStep] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookError, setBookError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!paymentStep) {
-      setPaymentStep(true);
-    } else {
-      onConfirm([passenger]);
+  const getBasePrice = (): number => {
+    if (train.routes?.length && train.routes[0].basePrice) {
+      return Number(train.routes[0].basePrice);
     }
+    return train.priceStart || 500;
   };
 
   const getPrice = () => {
     let multiplier = 1;
     if (ticketClass === TicketClass.BUSINESS) multiplier = 1.5;
     if (ticketClass === TicketClass.FIRST) multiplier = 2.5;
-    return Math.round(train.priceStart * multiplier);
+    return Math.round(getBasePrice() * multiplier);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBookError('');
+
+    if (!paymentStep) {
+      setPaymentStep(true);
+      return;
+    }
+
+    // Try API booking if authenticated and train has route data
+    if (isAuthenticated && train.routes?.length) {
+      setIsBooking(true);
+      try {
+        await api.bookings.create({
+          trainId: train.id,
+          routeId: train.routes[0].id,
+          travelDate: date,
+          ticketClass: ticketClass,
+          passengers: passengerCount,
+        });
+      } catch (err: any) {
+        setBookError(err.message || 'Booking failed');
+        setIsBooking(false);
+        return;
+      }
+      setIsBooking(false);
+    }
+
+    onConfirm([passenger]);
   };
 
   return (
@@ -61,14 +96,26 @@ const BookingForm: React.FC<BookingFormProps> = ({
             </div>
             <span>•</span>
             <span>{date}</span>
-            <span>•</span>
-            <span>{train.departureTime}</span>
+            {train.departureTime && <><span>•</span><span>{train.departureTime}</span></>}
             <span>•</span>
             <span className="bg-accent px-2 py-0.5 rounded text-xs text-white uppercase font-bold">{ticketClass}</span>
+            <span>•</span>
+            <span>{passengerCount} pax</span>
           </div>
         </div>
 
+        {!isAuthenticated && (
+          <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center gap-2 text-sm text-amber-700">
+            <AlertCircle className="h-4 w-4" />
+            <span>Login to save your booking to your account. You can still book as guest.</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="p-8">
+          {bookError && (
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200 mb-4">{bookError}</div>
+          )}
+
           {!paymentStep ? (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
@@ -131,8 +178,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-slate-600">Ticket Price ({ticketClass})</span>
-                  <span className="font-semibold">₹{getPrice()}</span>
+                  <span className="text-slate-600">Ticket Price ({ticketClass}) × {passengerCount}</span>
+                  <span className="font-semibold">₹{getPrice() * passengerCount}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-slate-600">GST & Fees</span>
@@ -140,7 +187,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 </div>
                 <div className="border-t border-slate-200 mt-2 pt-2 flex justify-between items-center">
                   <span className="text-lg font-bold text-slate-900">Total</span>
-                  <span className="text-lg font-bold text-accent">₹{getPrice() + 45}</span>
+                  <span className="text-lg font-bold text-accent">₹{getPrice() * passengerCount + 45}</span>
                 </div>
               </div>
 
@@ -166,10 +213,11 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-green-500/30 transition-all flex items-center gap-2"
+                  disabled={isBooking}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-green-500/30 transition-all flex items-center gap-2 disabled:opacity-60"
                 >
-                  <CheckCircle className="h-5 w-5" />
-                  Pay & Book
+                  {isBooking ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle className="h-5 w-5" />}
+                  {isBooking ? 'Booking...' : 'Pay & Book'}
                 </button>
               </div>
             </div>

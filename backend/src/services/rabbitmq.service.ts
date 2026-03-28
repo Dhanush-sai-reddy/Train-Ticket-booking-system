@@ -1,9 +1,8 @@
 import * as amqp from 'amqplib';
-import { Connection, Channel } from 'amqplib';
 
 class RabbitMQService {
-    private connection: Connection | null = null;
-    private channel: Channel | null = null;
+    private connection: any = null;
+    private channel: any = null;
     private url: string;
 
     constructor() {
@@ -28,15 +27,10 @@ class RabbitMQService {
     }
 
     public async sendToQueue(queue: string, message: any): Promise<void> {
-        if (!this.channel) {
-            console.warn('RabbitMQ channel not ready');
-            return;
-        }
-
+        if (!this.channel) return;
         try {
             await this.channel.assertQueue(queue, { durable: true });
             this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
-
         } catch (error) {
             console.error(`Failed to send to queue ${queue}:`, error);
         }
@@ -44,14 +38,12 @@ class RabbitMQService {
 
     public async consume(queue: string, callback: (msg: any) => void): Promise<void> {
         if (!this.channel) return;
-
         try {
             await this.channel.assertQueue(queue, { durable: true });
-            this.channel.consume(queue, (msg) => {
+            this.channel.consume(queue, (msg: any) => {
                 if (msg) {
-                    const content = JSON.parse(msg.content.toString());
-                    callback(content);
-                    this.channel?.ack(msg);
+                    callback(JSON.parse(msg.content.toString()));
+                    this.channel.ack(msg);
                 }
             });
         } catch (error) {

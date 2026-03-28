@@ -10,6 +10,21 @@ const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
 
 class AuthController {
+  // Get current user from token
+  public me = async (req: any, res: Response) => {
+    try {
+      const userId = req.userId;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { profile: true }
+      });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      res.json({ id: user.id, email: user.email, name: `${user.firstName} ${user.lastName}`, profile: user.profile });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  };
+
   // Register a new user
   public register = async (req: Request, res: Response) => {
     try {
