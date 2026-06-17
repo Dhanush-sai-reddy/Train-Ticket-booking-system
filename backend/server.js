@@ -83,10 +83,13 @@ app.use(errorHandler);
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT, 10) || 3001;
 
-app.listen(PORT, () => {
-  console.log(`🚂 Server running on http://localhost:${PORT}`);
-  console.log(`   Environment : ${process.env.NODE_ENV || 'development'}`);
-  console.log(`   Health check: http://localhost:${PORT}/health`);
-});
+// Only start the server if this file is run directly (not imported as a module by Vercel)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚂 Server running on http://localhost:${PORT}`);
+    console.log(`   Environment : ${process.env.NODE_ENV || 'development'}`);
+    console.log(`   Health check: http://localhost:${PORT}/health`);
+  });
+}
 
-module.exports = app; // Export for testing
+module.exports = app; // Export for Vercel and testing
