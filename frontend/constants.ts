@@ -1,0 +1,77 @@
+import { Station, Train } from './types';
+
+export const STATIONS: Station[] = [
+  { id: 'ndls', name: 'New Delhi Railway Station', code: 'NDLS', city: 'New Delhi, DL' },
+  { id: 'cstm', name: 'Mumbai CSMT', code: 'CSMT', city: 'Mumbai, MH' },
+  { id: 'sbc', name: 'KSR Bengaluru City', code: 'SBC', city: 'Bengaluru, KA' },
+  { id: 'mas', name: 'MGR Chennai Central', code: 'MAS', city: 'Chennai, TN' },
+  { id: 'hwh', name: 'Howrah Junction', code: 'HWH', city: 'Kolkata, WB' },
+  { id: 'sc', name: 'Secunderabad Junction', code: 'SC', city: 'Hyderabad, TS' },
+  { id: 'adi', name: 'Ahmedabad Junction', code: 'ADI', city: 'Ahmedabad, GJ' },
+  { id: 'jp', name: 'Jaipur Junction', code: 'JP', city: 'Jaipur, RJ' },
+  { id: 'pune', name: 'Pune Junction', code: 'PUNE', city: 'Pune, MH' },
+  { id: 'lko', name: 'Lucknow Charbagh', code: 'LKO', city: 'Lucknow, UP' }
+];
+
+export const MOCK_TRAINS: Train[] = [
+  {
+    id: 't1',
+    name: 'Vande Bharat Express',
+    number: '22436',
+    departureTime: '06:00',
+    arrivalTime: '14:00',
+    duration: '8h 00m',
+    priceStart: 1650,
+    amenities: ['WiFi', 'Meals', 'AC', 'Bio-Toilets'],
+  },
+  {
+    id: 't2',
+    name: 'Rajdhani Express',
+    number: '12951',
+    departureTime: '16:30',
+    arrivalTime: '08:30',
+    duration: '16h 00m',
+    priceStart: 2200,
+    amenities: ['WiFi', 'Meals', 'Sleeper', 'AC'],
+  },
+  {
+    id: 't3',
+    name: 'Shatabdi Express',
+    number: '12002',
+    departureTime: '06:10',
+    arrivalTime: '11:15',
+    duration: '5h 05m',
+    priceStart: 950,
+    amenities: ['Meals', 'AC', 'Newspaper'],
+  },
+  {
+    id: 't4',
+    name: 'Duronto Express',
+    number: '12213',
+    departureTime: '23:00',
+    arrivalTime: '17:00',
+    duration: '18h 00m',
+    priceStart: 1900,
+    amenities: ['Meals', 'Sleeper', 'AC'],
+  },
+  {
+    id: 't5',
+    name: 'Garib Rath',
+    number: '12612',
+    departureTime: '19:15',
+    arrivalTime: '03:55',
+    duration: '8h 40m',
+    priceStart: 800,
+    amenities: ['AC', 'Bedroll'],
+  },
+  {
+    id: 't6',
+    name: 'Tejas Express',
+    number: '82902',
+    departureTime: '06:40',
+    arrivalTime: '13:05',
+    duration: '6h 25m',
+    priceStart: 1400,
+    amenities: ['WiFi', 'Meals', 'AC', 'Entertainment'],
+  },
+];
