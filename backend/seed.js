@@ -3,43 +3,43 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-    // --- STATIONS SEED (commented out - already seeded) ---
-    // const stationsRaw = JSON.parse(fs.readFileSync('./stations.json', 'utf-8'));
-    // const stations = stationsRaw.features.map(f => ({
-    //     code: f.properties.code,
-    //     name: f.properties.name,
-    //     state: f.properties.state,
-    //     zone: f.properties.zone,
-    //     address: f.properties.address,
-    //     longitude: f.geometry?.coordinates?.[0] || null,
-    //     latitude: f.geometry?.coordinates?.[1] || null
-    // }));
-    // await prisma.station.createMany({ data: stations, skipDuplicates: true });
-    // console.log(`✅ Seeded ${stations.length} stations`);
+    // --- STATIONS SEED ---
+    const stationsRaw = JSON.parse(fs.readFileSync('./stations.json', 'utf-8'));
+    const stations = stationsRaw.features.map(f => ({
+        code: f.properties.code,
+        name: f.properties.name,
+        state: f.properties.state,
+        zone: f.properties.zone,
+        address: f.properties.address,
+        longitude: f.geometry?.coordinates?.[0] || null,
+        latitude: f.geometry?.coordinates?.[1] || null
+    }));
+    await prisma.station.createMany({ data: stations, skipDuplicates: true });
+    console.log(`✅ Seeded ${stations.length} stations`);
 
-    // --- TRAINS SEED (commented out - already seeded) ---
-    // const trainsRaw = JSON.parse(fs.readFileSync('./trains.json', 'utf-8'));
-    // const trains = trainsRaw.features.map(f => ({
-    //     number: f.properties.number,
-    //     name: f.properties.name,
-    //     type: f.properties.type,
-    //     zone: f.properties.zone,
-    //     returnTrain: f.properties.return_train,
-    //     classes: f.properties.classes,
-    //     thirdAc: f.properties.third_ac || 0,
-    //     chairCar: f.properties.chair_car || 0,
-    //     firstClass: f.properties.first_class || 0,
-    //     sleeper: f.properties.sleeper || 0,
-    //     secondAc: f.properties.second_ac || 0,
-    //     durationH: f.properties.duration_h || null,
-    //     durationM: f.properties.duration_m || null,
-    //     departure: f.properties.departure,
-    //     arrival: f.properties.arrival,
-    //     fromStationCode: f.properties.from_station_code,
-    //     toStationCode: f.properties.to_station_code
-    // }));
-    // await prisma.train.createMany({ data: trains, skipDuplicates: true });
-    // console.log(`✅ Seeded ${trains.length} trains`);
+    // --- TRAINS SEED ---
+    const trainsRaw = JSON.parse(fs.readFileSync('./trains.json', 'utf-8'));
+    const trains = trainsRaw.features.map(f => ({
+        number: f.properties.number,
+        name: f.properties.name,
+        type: f.properties.type,
+        zone: f.properties.zone,
+        returnTrain: f.properties.return_train,
+        classes: f.properties.classes,
+        thirdAc: f.properties.third_ac || 0,
+        chairCar: f.properties.chair_car || 0,
+        firstClass: f.properties.first_class || 0,
+        sleeper: f.properties.sleeper || 0,
+        secondAc: f.properties.second_ac || 0,
+        durationH: f.properties.duration_h || null,
+        durationM: f.properties.duration_m || null,
+        departure: f.properties.departure,
+        arrival: f.properties.arrival,
+        fromStationCode: f.properties.from_station_code,
+        toStationCode: f.properties.to_station_code
+    }));
+    await prisma.train.createMany({ data: trains, skipDuplicates: true });
+    console.log(`✅ Seeded ${trains.length} trains`);
 
     // --- SCHEDULES SEED ---
     // Get valid station codes and train numbers from DB
