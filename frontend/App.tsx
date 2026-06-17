@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-d
 import Navbar from './components/Navbar';
 import GeminiAssistant from './components/GeminiAssistant';
 import MyBookings from './components/MyBookings';
+import StationSelect from './components/StationSelect';
 import { STATIONS, MOCK_TRAINS } from './constants';
 import { Train, TicketClass, SearchParams, Booking, Passenger, Station } from './types';
 import TrainList from './components/TrainList';
@@ -112,30 +113,20 @@ const AppContent: React.FC = () => {
                   <form onSubmit={handleSearch} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-700 ml-1">From</label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                          <select
-                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent outline-none appearance-none"
-                            value={searchParams.originId}
-                            onChange={(e) => setSearchParams({ ...searchParams, originId: e.target.value })}
-                          >
-                            {stations.map(s => <option key={s.id} value={s.id}>{s.city} ({s.code})</option>)}
-                          </select>
-                        </div>
+                        <StationSelect
+                          label="From"
+                          stations={stations}
+                          value={searchParams.originId}
+                          onChange={(id) => setSearchParams({ ...searchParams, originId: id })}
+                        />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-700 ml-1">To</label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                          <select
-                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent outline-none appearance-none"
-                            value={searchParams.destinationId}
-                            onChange={(e) => setSearchParams({ ...searchParams, destinationId: e.target.value })}
-                          >
-                            {stations.map(s => <option key={s.id} value={s.id}>{s.city} ({s.code})</option>)}
-                          </select>
-                        </div>
+                        <StationSelect
+                          label="To"
+                          stations={stations}
+                          value={searchParams.destinationId}
+                          onChange={(id) => setSearchParams({ ...searchParams, destinationId: id })}
+                        />
                       </div>
                     </div>
 
