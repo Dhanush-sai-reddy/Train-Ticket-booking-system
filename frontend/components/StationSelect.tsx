@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { Station } from '../types';
+import { api } from '../services/api';
 
 interface StationSelectProps {
   label: string;
@@ -17,6 +18,9 @@ export default function StationSelect({ label, stations, value, onChange }: Stat
   const selectedStation = stations.find(s => s.id === value);
   const displayValue = selectedStation ? `${selectedStation.city} (${selectedStation.code})` : '';
 
+  const [asyncStations, setAsyncStations] = useState<Station[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -27,11 +31,26 @@ export default function StationSelect({ label, stations, value, onChange }: Stat
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredStations = stations.filter(s => 
-    (s.city || '').toLowerCase().includes(query.toLowerCase()) || 
-    (s.code || '').toLowerCase().includes(query.toLowerCase()) ||
-    (s.name || '').toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 50);
+  useEffect(() => {
+    if (query.trim().length === 0) {
+      setAsyncStations(stations);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const results = await api.stations.list(query);
+        setAsyncStations(results);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query, stations]);
+
+  const displayStations = query.trim().length === 0 ? stations : asyncStations;
 
   return (
     <div className="space-y-1 relative" ref={wrapperRef}>
@@ -56,10 +75,12 @@ export default function StationSelect({ label, stations, value, onChange }: Stat
 
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto">
-          {filteredStations.length === 0 ? (
+          {isLoading ? (
+            <div className="p-4 flex justify-center text-accent"><Loader2 className="animate-spin h-5 w-5" /></div>
+          ) : displayStations.length === 0 ? (
             <div className="p-4 text-center text-slate-500 text-sm">No stations found</div>
           ) : (
-            filteredStations.map(s => (
+            displayStations.map(s => (
               <div
                 key={s.id}
                 className={`px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 flex flex-col border-b border-slate-50 last:border-0 ${s.id === value ? 'bg-accent/5' : ''}`}

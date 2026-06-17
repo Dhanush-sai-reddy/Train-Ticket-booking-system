@@ -36,7 +36,9 @@ export const api = {
       request<{ id: string; email: string; name: string }>('/api/auth/me'),
   },
   stations: {
-    list: () => request<any>('/api/stations').then(res => {
+    list: (search?: string) => {
+      const qs = search ? `?search=${encodeURIComponent(search)}&limit=50` : '?limit=50';
+      return request<any>(`/api/stations${qs}`).then(res => {
       if (!res.data) return [];
       return res.data.map((s: any) => ({
         id: s.code,
