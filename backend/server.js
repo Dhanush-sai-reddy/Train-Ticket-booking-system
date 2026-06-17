@@ -66,11 +66,11 @@ app.use('/api/stations',  require('./routes/stations'));
 app.use('/api/schedules', require('./routes/schedules'));
 
 // Phase 2+: These routes need User, Booking, Route models — not in schema yet
-// app.use('/api/auth',      require('./routes/auth'));
+app.use('/api/auth',      require('./routes/auth'));
 // app.use('/api/routes',    require('./routes/routes'));
-// app.use('/api/bookings',  require('./routes/bookings'));
-// app.use('/api/users',     require('./routes/users'));
-// app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/bookings',  require('./routes/bookings'));
+app.use('/api/users',     require('./routes/users'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((_req, res) => {

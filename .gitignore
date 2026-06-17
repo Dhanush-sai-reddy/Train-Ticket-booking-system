@@ -40,6 +40,8 @@ redis_data/
 # Coverage
 coverage/
 .nyc_output/
-
+*.json
 # OS generated files
 Thumbs.db
+#for the backupdump db
+*.dump

@@ -7,7 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://railrover_user:railrover_password@localhost:5432/railrover?schema=public"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Station {
@@ -23,6 +24,8 @@ model Station {
   trainsFrom      Train[]         @relation("FromStation")
   trainsTo        Train[]         @relation("ToStation")
   trainSchedules  TrainSchedule[]
+  originBookings  Booking[]       @relation("BookingFromStation")
+  destBookings    Booking[]       @relation("BookingToStation")
 
   @@map("stations")
 }
@@ -50,6 +53,9 @@ model Train {
   fromStation     Station?        @relation("FromStation", fields: [fromStationCode], references: [code])
   toStation       Station?        @relation("ToStation", fields: [toStationCode], references: [code])
   trainSchedules  TrainSchedule[]
+  bookings        Booking[]
+  occupancy       SeatOccupancy[]
+  pricing         PricingHistory[]
 
   @@map("trains")
 }
@@ -67,4 +73,88 @@ model TrainSchedule {
   station       Station  @relation(fields: [stationCode], references: [code])
 
   @@map("train_schedules")
+}
+
+model User {
+  id           String    @id
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  phone        String?
+  verified     Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  profile  UserProfile?
+  bookings Booking[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  userId         String  @id @map("user_id")
+  preferences    Json    @default("{}")
+  loyaltyPoints  Int     @default(0) @map("loyalty_points")
+  tier           String  @default("regular")
+  totalBookings  Int     @default(0) @map("total_bookings")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Booking {
+  id              String   @id @default(uuid())
+  time            DateTime @default(now())
+  userId          String   @map("user_id")
+  trainNumber     String   @map("train_number")
+  fromStationCode String   @map("from_station_code")
+  toStationCode   String   @map("to_station_code")
+  travelDate      DateTime @db.Date @map("travel_date")
+  ticketClass     String   @map("ticket_class")
+  passengers      Int
+  totalPrice      Decimal  @db.Decimal(10, 2) @map("total_price")
+  status          String   @default("confirmed") // 'confirmed', 'cancelled', 'completed'
+  paymentId       String?  @map("payment_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User    @relation(fields: [userId], references: [id])
+  train       Train   @relation(fields: [trainNumber], references: [number])
+  fromStation Station @relation("BookingFromStation", fields: [fromStationCode], references: [code])
+  toStation   Station @relation("BookingToStation", fields: [toStationCode], references: [code])
+
+  @@map("bookings")
+}
+
+model SeatOccupancy {
+  id             String   @id @default(uuid())
+  time           DateTime @default(now())
+  trainNumber    String   @map("train_number")
+  date           DateTime @db.Date
+  totalBooked    Int      @map("total_booked")
+  totalAvailable Int      @map("total_available")
+  occupancyRate  Float    @map("occupancy_rate")
+
+  // Relations
+  train Train @relation(fields: [trainNumber], references: [number])
+
+  @@map("seat_occupancy")
+}
+
+model PricingHistory {
+  id           String   @id @default(uuid())
+  time         DateTime @default(now())
+  trainNumber  String   @map("train_number")
+  ticketClass  String   @map("ticket_class")
+  price        Decimal  @db.Decimal(10, 2)
+  demandFactor Float    @default(1.0) @map("demand_factor")
+
+  // Relations
+  train Train @relation(fields: [trainNumber], references: [number])
+
+  @@map("pricing_history")
 }
