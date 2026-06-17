@@ -8,9 +8,10 @@ interface StationSelectProps {
   stations: Station[];
   value: string;
   onChange: (stationId: string) => void;
+  disabled?: boolean;
 }
 
-export default function StationSelect({ label, stations, value, onChange }: StationSelectProps) {
+export default function StationSelect({ label, stations, value, onChange, disabled }: StationSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -59,14 +60,16 @@ export default function StationSelect({ label, stations, value, onChange }: Stat
         <MapPin className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
         <input
           type="text"
-          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent outline-none"
-          placeholder="Search city, name or station code..."
+          disabled={disabled}
+          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent outline-none disabled:opacity-60"
+          placeholder={disabled ? 'Loading stations...' : 'Search city, name or station code...'}
           value={isOpen ? query : displayValue}
           onChange={(e) => {
             setQuery(e.target.value);
             setIsOpen(true);
           }}
           onFocus={() => {
+            if (disabled) return;
             setIsOpen(true);
             setQuery('');
           }}

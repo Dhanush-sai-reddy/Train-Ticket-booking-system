@@ -21,11 +21,10 @@ export interface Train {
   id: string;
   name: string;
   number: string;
-  type: string;
-  totalSeats: number;
-  amenities: string[];
-  routes: TrainRoute[];
-  // Frontend-only display helpers (optional)
+  type?: string;
+  totalSeats?: number;
+  amenities?: string[];
+  routes?: TrainRoute[];
   departureTime?: string;
   arrivalTime?: string;
   duration?: string;

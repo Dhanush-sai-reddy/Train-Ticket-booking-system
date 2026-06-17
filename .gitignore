@@ -40,7 +40,15 @@ redis_data/
 # Coverage
 coverage/
 .nyc_output/
-*.json
+
+# Large seed data dumps (keep sample_*.json for reference)
+schedules.json
+stations.json
+trains.json
+backend/schedules.json
+backend/stations.json
+backend/trains.json
+
 # OS generated files
 Thumbs.db
 #for the backupdump db
