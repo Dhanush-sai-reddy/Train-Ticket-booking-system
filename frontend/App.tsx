@@ -147,7 +147,12 @@ const AppContent: React.FC = () => {
                           label="From"
                           stations={stations}
                           value={searchParams.originId}
-                          onChange={(id) => setSearchParams({ ...searchParams, originId: id })}
+                          onChange={(id, station) => {
+                            setSearchParams({ ...searchParams, originId: id });
+                            if (station && !stations.find(s => s.id === station.id)) {
+                              setStations(prev => [...prev, station]);
+                            }
+                          }}
                           disabled={stationsLoading}
                         />
                       </div>
@@ -156,7 +161,12 @@ const AppContent: React.FC = () => {
                           label="To"
                           stations={stations}
                           value={searchParams.destinationId}
-                          onChange={(id) => setSearchParams({ ...searchParams, destinationId: id })}
+                          onChange={(id, station) => {
+                            setSearchParams({ ...searchParams, destinationId: id });
+                            if (station && !stations.find(s => s.id === station.id)) {
+                              setStations(prev => [...prev, station]);
+                            }
+                          }}
                           disabled={stationsLoading}
                         />
                       </div>

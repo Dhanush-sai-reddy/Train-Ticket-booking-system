@@ -7,7 +7,7 @@ interface StationSelectProps {
   label: string;
   stations: Station[];
   value: string;
-  onChange: (stationId: string) => void;
+  onChange: (stationId: string, station?: Station) => void;
   disabled?: boolean;
 }
 
@@ -88,7 +88,7 @@ export default function StationSelect({ label, stations, value, onChange, disabl
                 key={s.id}
                 className={`px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 flex flex-col border-b border-slate-50 last:border-0 ${s.id === value ? 'bg-accent/5' : ''}`}
                 onClick={() => {
-                  onChange(s.id);
+                  onChange(s.id, s);
                   setIsOpen(false);
                 }}
               >
