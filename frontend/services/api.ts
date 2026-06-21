@@ -1,4 +1,5 @@
-const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:3001';
+const isProd = typeof import.meta !== 'undefined' && import.meta.env?.PROD;
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || (isProd ? '' : 'http://localhost:3001');
 
 function getToken(): string | null {
   return localStorage.getItem('railrover_token');
