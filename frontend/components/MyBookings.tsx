@@ -60,9 +60,9 @@ const MyBookings: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3 text-sm text-slate-600">
                     <MapPin className="h-4 w-4 text-slate-400" />
-                    <span className="font-medium">{b.route?.origin?.code || '?'}</span>
+                    <span className="font-medium">{b.fromStation?.code || '?'}</span>
                     <span>→</span>
-                    <span className="font-medium">{b.route?.destination?.code || '?'}</span>
+                    <span className="font-medium">{b.toStation?.code || '?'}</span>
                     <span className="text-slate-400">•</span>
                     <Calendar className="h-4 w-4 text-slate-400" />
                     <span>{b.travelDate ? new Date(b.travelDate).toLocaleDateString() : '—'}</span>

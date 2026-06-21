@@ -55,19 +55,19 @@ const BookingForm: React.FC<BookingFormProps> = ({
       return;
     }
 
-    // Try API booking if authenticated and train has route data
-    if (isAuthenticated && train.routes?.length) {
+    if (isAuthenticated) {
       setIsBooking(true);
       try {
         await api.bookings.create({
-          trainId: train.id,
-          routeId: train.routes[0].id,
+          trainNumber: train.number,
+          fromStationCode: origin.code,
+          toStationCode: destination.code,
           travelDate: date,
-          ticketClass: ticketClass,
+          ticketClass,
           passengers: passengerCount,
         });
-      } catch (err: any) {
-        setBookError(err.message || 'Booking failed');
+      } catch (err: unknown) {
+        setBookError(err instanceof Error ? err.message : 'Booking failed');
         setIsBooking(false);
         return;
       }

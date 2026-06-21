@@ -12,16 +12,16 @@ export const generateTravelAdvice = async (
 ): Promise<string> => {
   const ai = getAiClient();
   if (!ai) {
-    console.warn("Gemini API Key missing");
-    return "I am currently offline (API Key missing). Please check your configuration.";
+    console.warn("Gemini API Key missing no money no honey");
+    return "GET YOUR OWN KEY YO";
   }
-
+// TODO-TO add the mcp supabase maybe  
   try {
     const fullPrompt = `
       You are RailRover's helpful Travel Assistant.
       User Context: ${context || 'None provided.'}
       User Question: ${prompt}
-
+    
       Keep your answer concise (under 100 words), helpful, and focused on train travel, destinations, or packing tips.
       Be friendly and professional.
     `;

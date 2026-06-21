@@ -17,3 +17,4 @@ COPY . .
 
 # Run the application
 CMD ["python", "-u", "main.py"]
+

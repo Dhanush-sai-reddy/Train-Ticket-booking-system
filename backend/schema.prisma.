@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Station {
+  id                String          @id @default(cuid())
+  code              String          @unique
+  name              String
+  state             String?
+  zone              String?
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  createdAt         DateTime        @default(now()) @map("created_at")
+  originRoutes      Route[]         @relation("OriginStation")
+  destinationRoutes Route[]         @relation("DestinationStation")
+  schedules         TrainSchedule[]
+
+  @@map("stations")
+}
+
+model Train {
+  id              String          @id @default(cuid())
+  number          String          @unique
+  name            String
+  type            String?
+  zone            String?
+  returnTrain     String?         @map("return_train")
+  classes         String?
+  thirdAc         Int             @default(0) @map("third_ac")
+  chairCar        Int             @default(0) @map("chair_car")
+  firstClass      Int             @default(0) @map("first_class")
+  sleeper         Int             @default(0)
+  secondAc        Int             @default(0) @map("second_ac")
+  durationH       Int?            @map("duration_h")
+  durationM       Int?            @map("duration_m")
+  departure       String?
+  arrival         String?
+  fromStationCode String?         @map("from_station_code")
+  toStationCode   String?         @map("to_station_code")
+  active          Boolean         @default(true)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  routes          Route[]
+  schedules       TrainSchedule[]
+  bookings        Booking[]
+
+  @@map("trains")
+}
+
+model Route {
+  id            String           @id @default(cuid())
+  trainId       String           @map("train_id")
+  originId      String           @map("origin_id")
+  destinationId String           @map("destination_id")
+  distanceKm    Float?           @map("distance_km")
+  basePrice     Decimal          @map("base_price") @db.Decimal(10, 2)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  train         Train            @relation(fields: [trainId], references: [id])
+  origin        Station          @relation("OriginStation", fields: [originId], references: [id])
+  destination   Station          @relation("DestinationStation", fields: [destinationId], references: [id])
+  bookings      Booking[]
+
+  @@map("routes")
+}
+
+model TrainSchedule {
+  id            Int       @id
+  trainNumber   String    @map("train_number")
+  stationCode   String    @map("station_code")
+  day           Int
+  arrival       String?
+  departure     String?
+  train         Train     @relation(fields: [trainNumber], references: [number])
+  station       Station   @relation(fields: [stationCode], references: [code])
+  bookings      Booking[]
+
+  @@map("train_schedules")
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  userId     String        @map("user_id")
+  scheduleId Int           @map("schedule_id")
+  trainId    String        @map("train_id")
+  routeId    String        @map("route_id")
+  coachClass String        @map("coach_class")
+  seatNumber String        @map("seat_number")
+  status     String
+  user       User          @relation(fields: [userId], references: [id])
+  schedule   TrainSchedule @relation(fields: [scheduleId], references: [id])
+  train      Train         @relation(fields: [trainId], references: [id])
+  route      Route         @relation(fields: [routeId], references: [id])
+
+  @@unique([scheduleId, seatNumber])
+  @@map("bookings")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
+  phone        String?
+  verified     Boolean      @default(false)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  bookings     Booking[]
+
+  @@map("users")
+}
