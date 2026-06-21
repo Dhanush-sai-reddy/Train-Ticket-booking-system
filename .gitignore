@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+/package-lock.json
+
 
 # Editor directories and files
 .vscode/*
@@ -36,6 +38,13 @@ redis_data/
 # Database
 *.sqlite
 *.db
+trains.json
+stations.json
+schedules.json
+backend/trains.json
+backend/stations.json
+backend/schedules.json
+
 
 # Coverage
 coverage/
