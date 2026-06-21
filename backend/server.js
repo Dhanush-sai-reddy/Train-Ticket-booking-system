@@ -18,6 +18,9 @@ const { errorHandler } = require('./middleware/errorHandler');
 // ─── Express App ──────────────────────────────────────────────────────────────
 const app = express();
 
+// Trust Vercel's proxy so rate limiter and IP detection work correctly
+app.set('trust proxy', 1);
+
 // ─── Security Headers ─────────────────────────────────────────────────────────
 app.use(helmet());
 
