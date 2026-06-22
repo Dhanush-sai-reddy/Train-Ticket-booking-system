@@ -1,108 +1,95 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x", "linux-musl"]
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model Station {
-  code      String   @id
-  name      String
-  state     String?
-  zone      String?
-  address   String?
-  longitude Float?
-  latitude  Float?
-
-  // Relations
-  trainsFrom      Train[]         @relation("FromStation")
-  trainsTo        Train[]         @relation("ToStation")
-  trainSchedules  TrainSchedule[]
-  originBookings  Booking[]       @relation("BookingFromStation")
-  destBookings    Booking[]       @relation("BookingToStation")
+  code           String          @id
+  name           String
+  state          String?
+  zone           String?
+  address        String?
+  longitude      Float?
+  latitude       Float?
+  originBookings Booking[]       @relation("BookingFromStation")
+  destBookings   Booking[]       @relation("BookingToStation")
+  trainSchedules TrainSchedule[]
+  trainsFrom     Train[]         @relation("FromStation")
+  trainsTo       Train[]         @relation("ToStation")
 
   @@map("stations")
 }
 
 model Train {
-  number          String   @id
+  number          String           @id
   name            String
   type            String?
   zone            String?
-  returnTrain     String?  @map("return_train")
+  returnTrain     String?          @map("return_train")
   classes         String?
-  thirdAc         Int      @default(0) @map("third_ac")
-  chairCar        Int      @default(0) @map("chair_car")
-  firstClass      Int      @default(0) @map("first_class")
-  sleeper         Int      @default(0)
-  secondAc        Int      @default(0) @map("second_ac")
-  durationH       Int?     @map("duration_h")
-  durationM       Int?     @map("duration_m")
+  thirdAc         Int              @default(0) @map("third_ac")
+  chairCar        Int              @default(0) @map("chair_car")
+  firstClass      Int              @default(0) @map("first_class")
+  sleeper         Int              @default(0)
+  secondAc        Int              @default(0) @map("second_ac")
+  durationH       Int?             @map("duration_h")
+  durationM       Int?             @map("duration_m")
   departure       String?
   arrival         String?
-  fromStationCode String?  @map("from_station_code")
-  toStationCode   String?  @map("to_station_code")
-
-  // Relations
-  fromStation     Station?        @relation("FromStation", fields: [fromStationCode], references: [code])
-  toStation       Station?        @relation("ToStation", fields: [toStationCode], references: [code])
-  trainSchedules  TrainSchedule[]
+  fromStationCode String?          @map("from_station_code")
+  toStationCode   String?          @map("to_station_code")
   bookings        Booking[]
-  occupancy       SeatOccupancy[]
   pricing         PricingHistory[]
+  occupancy       SeatOccupancy[]
+  trainSchedules  TrainSchedule[]
+  fromStation     Station?         @relation("FromStation", fields: [fromStationCode], references: [code])
+  toStation       Station?         @relation("ToStation", fields: [toStationCode], references: [code])
 
   @@map("trains")
 }
 
 model TrainSchedule {
-  id            Int      @id
-  trainNumber   String   @map("train_number")
-  stationCode   String   @map("station_code")
-  day           Int
-  arrival       String?
-  departure     String?
-
-  // Relations
-  train         Train    @relation(fields: [trainNumber], references: [number])
-  station       Station  @relation(fields: [stationCode], references: [code])
+  id          Int     @id
+  trainNumber String  @map("train_number")
+  stationCode String  @map("station_code")
+  day         Int
+  arrival     String?
+  departure   String?
+  station     Station @relation(fields: [stationCode], references: [code])
+  train       Train   @relation(fields: [trainNumber], references: [number])
 
   @@map("train_schedules")
 }
 
 model User {
-  id           String    @id
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  firstName    String    @map("first_name")
-  lastName     String    @map("last_name")
+  id           String       @id
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
   phone        String?
-  verified     Boolean   @default(false)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  profile  UserProfile?
-  bookings Booking[]
+  verified     Boolean      @default(false)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  bookings     Booking[]
+  profile      UserProfile?
 
   @@map("users")
 }
 
 model UserProfile {
-  userId         String  @id @map("user_id")
-  preferences    Json    @default("{}")
-  loyaltyPoints  Int     @default(0) @map("loyalty_points")
-  tier           String  @default("regular")
-  totalBookings  Int     @default(0) @map("total_bookings")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String @id @map("user_id")
+  preferences   Json   @default("{}")
+  loyaltyPoints Int    @default(0) @map("loyalty_points")
+  tier          String @default("regular")
+  totalBookings Int    @default(0) @map("total_bookings")
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
 }
@@ -114,19 +101,17 @@ model Booking {
   trainNumber     String   @map("train_number")
   fromStationCode String   @map("from_station_code")
   toStationCode   String   @map("to_station_code")
-  travelDate      DateTime @db.Date @map("travel_date")
+  travelDate      DateTime @map("travel_date") @db.Date
   ticketClass     String   @map("ticket_class")
   passengers      Int
-  totalPrice      Decimal  @db.Decimal(10, 2) @map("total_price")
-  status          String   @default("confirmed") // 'confirmed', 'cancelled', 'completed'
+  totalPrice      Decimal  @map("total_price") @db.Decimal(10, 2)
+  status          String   @default("confirmed")
   paymentId       String?  @map("payment_id")
   createdAt       DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user        User    @relation(fields: [userId], references: [id])
-  train       Train   @relation(fields: [trainNumber], references: [number])
-  fromStation Station @relation("BookingFromStation", fields: [fromStationCode], references: [code])
-  toStation   Station @relation("BookingToStation", fields: [toStationCode], references: [code])
+  fromStation     Station  @relation("BookingFromStation", fields: [fromStationCode], references: [code])
+  toStation       Station  @relation("BookingToStation", fields: [toStationCode], references: [code])
+  train           Train    @relation(fields: [trainNumber], references: [number])
+  user            User     @relation(fields: [userId], references: [id])
 
   @@map("bookings")
 }
@@ -139,9 +124,7 @@ model SeatOccupancy {
   totalBooked    Int      @map("total_booked")
   totalAvailable Int      @map("total_available")
   occupancyRate  Float    @map("occupancy_rate")
-
-  // Relations
-  train Train @relation(fields: [trainNumber], references: [number])
+  train          Train    @relation(fields: [trainNumber], references: [number])
 
   @@map("seat_occupancy")
 }
@@ -153,9 +136,7 @@ model PricingHistory {
   ticketClass  String   @map("ticket_class")
   price        Decimal  @db.Decimal(10, 2)
   demandFactor Float    @default(1.0) @map("demand_factor")
-
-  // Relations
-  train Train @relation(fields: [trainNumber], references: [number])
+  train        Train    @relation(fields: [trainNumber], references: [number])
 
   @@map("pricing_history")
 }
