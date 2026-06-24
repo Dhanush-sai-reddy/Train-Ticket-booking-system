@@ -64,7 +64,7 @@ router.get('/search', async (req, res) => {
       JOIN train_schedules s2 ON s1.train_number = s2.train_number
       WHERE s1.station_code = ${fromCode}
         AND s2.station_code = ${toCode}
-        AND s1.id < s2.id
+        AND (s1.day < s2.day OR (s1.day = s2.day AND s1.id < s2.id))
         AND s1.train_number != ALL(${directNumbers})
     `;
 

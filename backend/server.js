@@ -80,6 +80,9 @@ app.use('/api/bookings',  require('./routes/bookings'));
 app.use('/api/users',     require('./routes/users'));
 app.use('/api/analytics', require('./routes/analytics'));
 
+// ─── MCP (Model Context Protocol) ────────────────────────────────────────────
+app.use('/mcp', require('./mcp'));
+
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
