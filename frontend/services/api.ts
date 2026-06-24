@@ -87,9 +87,38 @@ function deriveBasePrice(t: {
   return 500;
 }
 
+// Compute the actual travel duration between two HH:MM stop times.
+// Handles overnight crossings (e.g. depart 22:00, arrive 01:30 next day).
+function computeStopDuration(depTime: string, arrTime: string): string {
+  const [dH, dM] = depTime.split(':').map(Number);
+  const [aH, aM] = arrTime.split(':').map(Number);
+  let totalMins = (aH * 60 + aM) - (dH * 60 + dM);
+  if (totalMins < 0) totalMins += 24 * 60; // crossed midnight
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
 function mapTrain(t: Record<string, unknown>, fromCode?: string, toCode?: string) {
   const fromStation = t.fromStation as { code: string; name: string; state?: string | null } | undefined;
   const toStation = t.toStation as { code: string; name: string; state?: string | null } | undefined;
+
+  // fromStop / toStop are the schedule rows for the searched stations,
+  // injected by the backend search endpoint.
+  const fromStop = t.fromStop as { departure?: string | null; arrival?: string | null } | null | undefined;
+  const toStop   = t.toStop   as { departure?: string | null; arrival?: string | null } | null | undefined;
+
+  // Prefer the stop-specific times; fall back to train-level times.
+  const depTime = formatTime(fromStop?.departure ?? fromStop?.arrival ?? (t.departure as string));
+  const arrTime = formatTime(toStop?.arrival   ?? toStop?.departure  ?? (t.arrival   as string));
+
+  // Compute duration from stop times when both are available; otherwise use train-level values.
+  let duration: string | undefined;
+  if (depTime && arrTime) {
+    duration = computeStopDuration(depTime, arrTime);
+  } else {
+    duration = formatDuration(t.durationH as number, t.durationM as number);
+  }
 
   return {
     id: t.number as string,
@@ -109,9 +138,9 @@ function mapTrain(t: Record<string, unknown>, fromCode?: string, toCode?: string
       origin: mapStation(fromStation),
       destination: mapStation(toStation),
     }] : [],
-    departureTime: formatTime(t.departure as string),
-    arrivalTime: formatTime(t.arrival as string),
-    duration: formatDuration(t.durationH as number, t.durationM as number),
+    departureTime: depTime,
+    arrivalTime: arrTime,
+    duration,
     priceStart: deriveBasePrice(t as Parameters<typeof deriveBasePrice>[0]),
   };
 }

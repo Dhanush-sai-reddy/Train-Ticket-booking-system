@@ -83,14 +83,43 @@ router.get('/search', async (req, res) => {
 
     const allTrains = [...directTrains, ...indirectTrainDetails];
 
+    // Enrich each train with the specific schedule stop times for the
+    // searched from/to station codes (not the overall train departure/arrival).
+    // This is what lets the UI show "departs Pune at 08:20, arrives Talegaon at 09:05"
+    // instead of the train's full journey times.
+    const allNumbers = allTrains.map(t => t.number);
+    let fromStops = [];
+    let toStops = [];
+    if (allNumbers.length > 0) {
+      [fromStops, toStops] = await Promise.all([
+        prisma.trainSchedule.findMany({
+          where: { trainNumber: { in: allNumbers }, stationCode: fromCode },
+        }),
+        prisma.trainSchedule.findMany({
+          where: { trainNumber: { in: allNumbers }, stationCode: toCode },
+        }),
+      ]);
+    }
+
+    // Index stops by train number for O(1) lookup
+    const fromStopByTrain = Object.fromEntries(fromStops.map(s => [s.trainNumber, s]));
+    const toStopByTrain   = Object.fromEntries(toStops.map(s => [s.trainNumber, s]));
+
+    // Attach fromStop / toStop to each train result
+    const enrichedTrains = allTrains.map(train => ({
+      ...train,
+      fromStop: fromStopByTrain[train.number] || null,
+      toStop:   toStopByTrain[train.number]   || null,
+    }));
+
     return res.status(200).json({
       success: true,
-      data: allTrains,
+      data: enrichedTrains,
       meta: {
         direct: directTrains.length,
         indirect: indirectTrainDetails.length,
       },
-      message: `Found ${allTrains.length} train(s) from ${fromCode} to ${toCode}.`,
+      message: `Found ${enrichedTrains.length} train(s) from ${fromCode} to ${toCode}.`,
     });
   } catch (err) {
     console.error('Search trains error:', err);
