@@ -1,5 +1,9 @@
 # RailRover — Train Ticket Booking System
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Dhanush-sai-reddy/Train-Ticket-booking-system)
+[![Frontend Live](https://img.shields.io/badge/Frontend-Live-success?logo=vercel)](https://train-ticket-booking-system-zp43.vercel.app)
+[![Backend API](https://img.shields.io/badge/Backend-API-success?logo=vercel)](https://train-ticket-booking-system-sigma.vercel.app)
+
 A full-stack railway booking platform. The backend is a Node.js REST API using Prisma and PostgreSQL, and the frontend is a React + TypeScript SPA. Both are deployed on Vercel.
 
 ---
@@ -11,8 +15,27 @@ A full-stack railway booking platform. The backend is a Node.js REST API using P
 - **Ticket Booking** — Book tickets with coach-class selection; awards loyalty points on each booking
 - **Booking Management** — View, retrieve, and cancel personal bookings
 - **User Profile** — Update profile details and preferences
-- **Analytics** — Revenue, occupancy, popular routes, and demand metrics via SQL aggregations
 - **AI Assistant** — Gemini-powered travel assistant in the UI
+- **Model Context Protocol (MCP)** — Seamlessly exposes database and booking features to any MCP-compatible LLM client (like Claude Desktop or Cursor)
+
+---
+
+## Model Context Protocol (MCP) Integration
+
+RailRover implements the **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** to expose its capabilities to AI models and agents. The MCP server is available on the backend at `/mcp` and provides a set of standardized tools.
+
+By passing a valid JWT as a Bearer token, MCP clients can securely access both public data and user-specific tools:
+
+### Available MCP Tools
+- `search_trains` — Find trains between stations, including indirect routes.
+- `get_train` — Get full details, schedules, and seat counts for a specific train.
+- `search_stations` — Search stations by name, code, or state.
+- `get_my_profile` — Fetch the authenticated user's profile, loyalty points, and tier.
+- `get_my_bookings` — List the user's recent and active bookings.
+- `get_my_booking` — Fetch details of a specific booking.
+- `cancel_my_booking` — Cancel an existing booking.
+
+This integration empowers agents to natively plan trips, check schedules, and manage bookings conversationally.
 
 ---
 
@@ -132,15 +155,6 @@ Base URL: `http://localhost:3001`
 | `PATCH` | `/api/users/profile` | Yes | Update profile and preferences |
 | `GET` | `/api/users/bookings/stats` | Yes | Get booking statistics for the current user |
 
-### Analytics
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/analytics/revenue` | Yes | Revenue grouped by day/week/month |
-| `GET` | `/api/analytics/occupancy` | Yes | Average occupancy rates by train |
-| `GET` | `/api/analytics/popular-routes` | Yes | Top 10 routes by booking count |
-| `GET` | `/api/analytics/train-performance` | Yes | Demand metrics per train |
-
 ### Health
 
 | Method | Endpoint | Description |
@@ -166,25 +180,23 @@ Managed with **Prisma** against PostgreSQL:
 
 ## Project Structure
 
-```
-Train-Ticket-booking-system/
-├── backend/                  # Node.js Express API
-│   ├── routes/               # auth, trains, stations, schedules, bookings, users, analytics
-│   ├── middleware/           # JWT auth guard, error handler
-│   ├── lib/                  # Prisma client singleton
-│   ├── prisma/               # Migrations
-│   ├── schema.prisma.        # Prisma schema
-│   └── server.js             # App entry point
-├── frontend/                 # React + TypeScript SPA (Vite)
-│   ├── components/           # Navbar, BookingForm, TrainList, TicketView, AuthModal, ...
-│   ├── contexts/             # Auth context
-│   ├── services/             # API service layer
-│   ├── App.tsx               # Root component and routing
-│   └── types.ts              # Shared TypeScript types
-├── docker-compose.yml        # Optional local infrastructure
-├── .env.example              # Environment variable template
-└── seed.js                   # Database seeding script
-```
+- 📁 **[backend/](./backend)** — Node.js Express API
+  - 📁 **[routes/](./backend/routes)** — auth, trains, stations, schedules, bookings, users
+  - 📁 **[middleware/](./backend/middleware)** — JWT auth guard, error handler
+  - 📁 **[lib/](./backend/lib)** — Prisma client singleton
+  - 📁 **[prisma/](./backend/prisma)** — Migrations
+  - 📄 **[schema.prisma](./backend/schema.prisma.)** — Prisma schema
+  - 📄 **[server.js](./backend/server.js)** — App entry point
+  - 📄 **[mcp.js](./backend/mcp.js)** — MCP server implementation
+- 📁 **[frontend/](./frontend)** — React + TypeScript SPA (Vite)
+  - 📁 **[components/](./frontend/components)** — Navbar, BookingForm, TrainList, TicketView, AuthModal, ...
+  - 📁 **[contexts/](./frontend/contexts)** — Auth context
+  - 📁 **[services/](./frontend/services)** — API service layer
+  - 📄 **[App.tsx](./frontend/App.tsx)** — Root component and routing
+  - 📄 **[types.ts](./frontend/types.ts)** — Shared TypeScript types
+- 📄 **[docker-compose.yml](./docker-compose.yml)** — Optional local infrastructure (Kafka, Redis, TimescaleDB)
+- 📄 **[.env.example](./.env.example)** — Environment variable template
+- 📄 **[seed.js](./seed.js)** — Database seeding script
 
 ---
 
