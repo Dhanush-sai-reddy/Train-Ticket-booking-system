@@ -28,7 +28,7 @@ export interface Train {
   departureTime?: string;
   arrivalTime?: string;
   duration?: string;
-  priceStart?: number;
+  pricing?: Record<string, { price: number; demandFactor: number }> | null;
 }
 
 export enum TicketClass {

@@ -21,14 +21,6 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onSelect }) => {
     }
   };
 
-  // Get base price: try route basePrice, then priceStart, then default
-  const getBasePrice = (train: Train): number => {
-    if (train.routes?.length && train.routes[0].basePrice) {
-      return Number(train.routes[0].basePrice);
-    }
-    return train.priceStart || 500;
-  };
-
   // Get route info for display
   const getRouteInfo = (train: Train) => {
     if (train.routes?.length) {
@@ -41,7 +33,6 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onSelect }) => {
   return (
     <div className="space-y-4">
       {trains.map((train) => {
-        const basePrice = getBasePrice(train);
         const route = getRouteInfo(train);
         return (
         <div key={train.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-200 overflow-hidden">
@@ -110,27 +101,22 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onSelect }) => {
 
               {/* Pricing & Actions */}
               <div className="flex flex-col gap-3 min-w-[200px]">
-                <button 
-                  onClick={() => onSelect(train, TicketClass.ECONOMY)}
-                  className="flex justify-between items-center p-3 rounded-lg border border-slate-200 hover:border-accent hover:bg-blue-50 transition-colors group text-left"
-                >
-                  <span className="text-sm font-medium text-slate-600 group-hover:text-accent">CC / Sleeper</span>
-                  <span className="font-bold text-slate-900 group-hover:text-accent">₹{basePrice}</span>
-                </button>
-                <button 
-                  onClick={() => onSelect(train, TicketClass.BUSINESS)}
-                  className="flex justify-between items-center p-3 rounded-lg border border-slate-200 hover:border-accent hover:bg-blue-50 transition-colors group text-left"
-                >
-                  <span className="text-sm font-medium text-slate-600 group-hover:text-accent">3rd AC / EC</span>
-                  <span className="font-bold text-slate-900 group-hover:text-accent">₹{Math.round(basePrice * 1.5)}</span>
-                </button>
-                <button 
-                  onClick={() => onSelect(train, TicketClass.FIRST)}
-                  className="flex justify-between items-center p-3 rounded-lg border border-slate-200 hover:border-accent hover:bg-blue-50 transition-colors group text-left"
-                >
-                  <span className="text-sm font-medium text-slate-600 group-hover:text-accent">1st AC</span>
-                  <span className="font-bold text-slate-900 group-hover:text-accent">₹{Math.round(basePrice * 2.5)}</span>
-                </button>
+                {train.pricing && Object.keys(train.pricing).length > 0 ? (
+                  Object.entries(train.pricing).map(([className, info]) => (
+                    <button
+                      key={className}
+                      onClick={() => onSelect(train, className === 'sleeper' ? TicketClass.ECONOMY : className === '3AC' || className === '2AC' ? TicketClass.BUSINESS : TicketClass.FIRST)}
+                      className="flex justify-between items-center p-3 rounded-lg border border-slate-200 hover:border-accent hover:bg-blue-50 transition-colors group text-left"
+                    >
+                      <span className="text-sm font-medium text-slate-600 group-hover:text-accent capitalize">{className}</span>
+                      <span className="font-bold text-slate-900 group-hover:text-accent">₹{Math.round(info.price)}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-sm text-slate-400 text-center p-3 border border-dashed border-slate-200 rounded-lg">
+                    Pricing not available
+                  </div>
+                )}
               </div>
 
             </div>

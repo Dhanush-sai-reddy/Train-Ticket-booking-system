@@ -14,6 +14,11 @@ let prisma;
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient({
     log: ['error'],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
   });
 } else {
   // Avoid exhausting DB connections during dev hot-reloads

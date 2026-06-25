@@ -72,20 +72,7 @@ function deriveAmenities(t: {
   return amenities.length ? amenities : ['AC'];
 }
 
-function deriveBasePrice(t: {
-  sleeper?: number;
-  chairCar?: number;
-  secondAc?: number;
-  thirdAc?: number;
-  firstClass?: number;
-}): number {
-  if (t.firstClass) return 2500;
-  if (t.secondAc) return 1800;
-  if (t.thirdAc) return 1200;
-  if (t.chairCar) return 900;
-  if (t.sleeper) return 500;
-  return 500;
-}
+
 
 // Compute the actual travel duration between two HH:MM stop times.
 // dayDiff = toStop.day - fromStop.day (0 = same day, 1 = next day, etc.)
@@ -126,6 +113,9 @@ function mapTrain(t: Record<string, unknown>, fromCode?: string, toCode?: string
     duration = formatDuration(t.durationH as number, t.durationM as number);
   }
 
+  // Pass through real pricing from backend (PricingHistory table)
+  const pricing = t.pricing as Record<string, { price: number; demandFactor: number }> | null;
+
   return {
     id: t.number as string,
     name: t.name as string,
@@ -140,14 +130,14 @@ function mapTrain(t: Record<string, unknown>, fromCode?: string, toCode?: string
       originId: fromCode || fromStation.code,
       destinationId: toCode || toStation.code,
       distanceKm: null,
-      basePrice: String(deriveBasePrice(t as Parameters<typeof deriveBasePrice>[0])),
+      basePrice: '0',
       origin: mapStation(fromStation),
       destination: mapStation(toStation),
     }] : [],
     departureTime: depTime,
     arrivalTime: arrTime,
     duration,
-    priceStart: deriveBasePrice(t as Parameters<typeof deriveBasePrice>[0]),
+    pricing,
   };
 }
 

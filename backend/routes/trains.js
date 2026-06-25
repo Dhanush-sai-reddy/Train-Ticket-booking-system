@@ -105,11 +105,35 @@ router.get('/search', async (req, res) => {
     const fromStopByTrain = Object.fromEntries(fromStops.map(s => [s.trainNumber, s]));
     const toStopByTrain   = Object.fromEntries(toStops.map(s => [s.trainNumber, s]));
 
-    // Attach fromStop / toStop to each train result
+    // Fetch latest pricing for each train from PricingHistory
+    let pricingRows = [];
+    if (allNumbers.length > 0) {
+      // Get the most recent price per train+class combo
+      pricingRows = await prisma.$queryRaw`
+        SELECT DISTINCT ON (train_number, ticket_class)
+          train_number, ticket_class, price, demand_factor
+        FROM pricing_history
+        WHERE train_number = ANY(${allNumbers})
+        ORDER BY train_number, ticket_class, time DESC
+      `;
+    }
+
+    // Index prices by train number -> { class: price }
+    const pricesByTrain = {};
+    for (const row of pricingRows) {
+      if (!pricesByTrain[row.train_number]) pricesByTrain[row.train_number] = {};
+      pricesByTrain[row.train_number][row.ticket_class] = {
+        price: Number(row.price),
+        demandFactor: Number(row.demand_factor),
+      };
+    }
+
+    // Attach fromStop / toStop / pricing to each train result
     const enrichedTrains = allTrains.map(train => ({
       ...train,
       fromStop: fromStopByTrain[train.number] || null,
       toStop:   toStopByTrain[train.number]   || null,
+      pricing: pricesByTrain[train.number] || null,
     }));
 
     return res.status(200).json({
