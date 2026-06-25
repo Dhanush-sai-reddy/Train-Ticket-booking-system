@@ -16,7 +16,7 @@ const TicketView: React.FC<TicketViewProps> = ({ booking, onReset }) => {
           <Download className="h-8 w-8 text-green-600" />
         </div>
         <h2 className="text-3xl font-bold text-slate-900 mb-2">Booking Confirmed!</h2>
-        <p className="text-slate-500">Your ticket has been sent to your email.</p>
+        <p className="text-slate-500">Your booking has been confirmed. Save your ticket for reference.</p>
       </div>
 
       <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative mb-8">
@@ -90,7 +90,14 @@ const TicketView: React.FC<TicketViewProps> = ({ booking, onReset }) => {
           <Home className="h-5 w-5" />
           Home
         </Link>
-        <button className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+        <button onClick={() => {
+          const text = `RailRover Booking ${booking.id}: ${booking.origin.code} → ${booking.destination.code} on ${booking.date}`;
+          if (navigator.share) {
+            navigator.share({ title: 'RailRover Ticket', text }).catch(() => {});
+          } else {
+            navigator.clipboard.writeText(text).then(() => alert('Booking details copied to clipboard!'));
+          }
+        }} className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
           <Share2 className="h-5 w-5" />
           Share
         </button>

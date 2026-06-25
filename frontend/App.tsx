@@ -123,7 +123,7 @@ const AppContent: React.FC = () => {
                   <span className="text-accent">RailRover</span>
                 </h1>
                 <p className="text-lg text-slate-600 max-w-lg">
-                  Book tickets seamlessly with India's most advanced railway platform. Powered by Real-time Intelligence.
+                  Search trains, compare fares, and book your tickets in just a few clicks.
                 </p>
 
                 <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
@@ -209,20 +209,12 @@ const AppContent: React.FC = () => {
               <div className="lg:w-1/2 relative animate-in slide-in-from-right-10 fade-in duration-700 hidden lg:block">
                 <div className="absolute inset-0 bg-accent/10 rounded-full blur-3xl transform translate-x-12 translate-y-12"></div>
                 <img
-                  src="https://picsum.photos/800/600?grayscale"
+                  src="/train-hero.png"
                   alt="Modern Train"
                   className="relative rounded-3xl shadow-2xl z-10 object-cover h-[500px] w-full"
                 />
 
-                <div className="absolute -bottom-8 -left-8 bg-white p-4 rounded-xl shadow-xl z-20 flex items-center gap-4 animate-bounce duration-[3000ms]">
-                  <div className="bg-green-100 p-3 rounded-full">
-                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900">98% On Time</p>
-                    <p className="text-xs text-slate-500">Reliable service</p>
-                  </div>
-                </div>
+
               </div>
             </div>
           } />

@@ -24,7 +24,6 @@ const Navbar: React.FC = () => {
               <div className="ml-10 flex items-baseline space-x-4">
                 <Link to="/" className="hover:bg-slate-800 px-3 py-2 rounded-md text-sm font-medium">Home</Link>
                 <Link to="/my-bookings" className="hover:bg-slate-800 px-3 py-2 rounded-md text-sm font-medium">My Bookings</Link>
-                <a href="#" className="hover:bg-slate-800 px-3 py-2 rounded-md text-sm font-medium">Support</a>
               </div>
             </div>
             <div className="flex items-center gap-3">
