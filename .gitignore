@@ -62,3 +62,6 @@ backend/trains.json
 Thumbs.db
 #for the backupdump db
 *.dump
+
+# LaTeX files
+*.tex
